@@ -72,6 +72,10 @@ Signing out abandons an anonymous identity; there is no password recovery. Reloa
 
 The server makes one short request with a 3.5-second timeout. Missing configuration, provider errors, rate limits, malformed/empty responses, an unchanged message, or excessive output use the deterministic fallback. Keys never enter the frontend bundle. The UI explicitly identifies fallback delivery.
 
+`openai/gpt-oss-120b` and `openai/gpt-oss-20b` use low reasoning effort and a larger completion budget so the model can finish its final answer. Reasoning text is excluded from the response and never delivered to users. Other models use the short completion budget.
+
+For troubleshooting, authenticated send responses and Vercel function logs include a safe fallback category (`missing_configuration`, `provider_http_error`, `timeout`, `invalid_output`, `invalid_response`, or `request_failed`). HTTP failures include a status and, when recognized, a fixed provider error code. Missing configuration reports only whether each variable is present. Keys, message text, and raw provider error messages are never included in these diagnostics.
+
 Groq uses `api.groq.com`. If Codex cloud egress is restricted, add this exact hostname in environment network settings, and configure any proxy-backed key for this destination. The fallback requires only Supabase access.
 
 ## 4. Deploy through GitHub and Vercel — dashboard actions
@@ -90,7 +94,7 @@ For automated live checks, set the non-secret `TEST_BASE_URL` to your deployment
 ## Validation commands
 
 ```sh
-npm test                # 19 API/cipher/provider tests; provider is mocked
+npm test                # API/cipher/provider tests; provider is mocked
 npm run build          # Production Vite build
 npm run test:database  # Actual PostgreSQL permissions, RLS, transactions; needs Docker
 npm run test:e2e       # Chromium UI tests with mocked backend; NOT proof of live RLS

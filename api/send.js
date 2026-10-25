@@ -62,6 +62,7 @@ export function createSendHandler(deps = {}) {
       delivered: true,
       duplicate: data.duplicate,
       engine: interpreted.engine,
+      ...(interpreted.diagnostic ? { diagnostic: interpreted.diagnostic } : {}),
     };
   });
 }

@@ -46,6 +46,8 @@ export function endpoint(action) {
   return async (req, res) => {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Cache-Control", "no-store");
+    if (process.env.VERCEL_GIT_COMMIT_SHA)
+      res.setHeader("X-App-Revision", process.env.VERCEL_GIT_COMMIT_SHA);
     try {
       if (req.method !== "POST") {
         res.setHeader("Allow", "POST");

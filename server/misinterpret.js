@@ -21,10 +21,20 @@ export function fallback(text) {
 
 export async function misinterpret(
   text,
-  { env = process.env, fetcher = fetch } = {},
+  { env = process.env, fetcher = fetch, logger = console.warn } = {},
 ) {
+  const useFallback = (reason, details = {}) => {
+    const diagnostic = { reason, ...details };
+    // Log fixed categories only: never input, provider messages, headers, or keys.
+    logger("Groq fallback", diagnostic);
+    return { text: fallback(text), engine: "fallback", diagnostic };
+  };
   if (!env.GROQ_API_KEY || !env.GROQ_MODEL)
-    return { text: fallback(text), engine: "fallback" };
+    return useFallback("missing_configuration", {
+      hasApiKey: Boolean(env.GROQ_API_KEY),
+      hasModel: Boolean(env.GROQ_MODEL),
+    });
+  const reasoningModel = /^openai\/gpt-oss-(20b|120b)$/.test(env.GROQ_MODEL);
   try {
     const response = await fetcher(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -38,7 +48,10 @@ export async function misinterpret(
         body: JSON.stringify({
           model: env.GROQ_MODEL,
           temperature: 0.9,
-          max_tokens: 120,
+          max_completion_tokens: reasoningModel ? 768 : 120,
+          ...(reasoningModel
+            ? { reasoning_effort: "low", include_reasoning: false }
+            : {}),
           messages: [
             {
               role: "system",
@@ -53,18 +66,47 @@ export async function misinterpret(
         }),
       },
     );
-    if (!response.ok) throw new Error("Provider unavailable");
+    if (!response.ok) {
+      let code;
+      try {
+        const body = await response.json();
+        const allowed = [
+          "invalid_api_key",
+          "model_not_found",
+          "model_decommissioned",
+          "rate_limit_exceeded",
+          "insufficient_quota",
+          "invalid_request_error",
+          "unsupported_parameter",
+          "permission_denied",
+        ];
+        if (allowed.includes(body.error?.code)) code = body.error.code;
+      } catch {
+        /* Status alone is sufficient if the error body cannot be read. */
+      }
+      return useFallback("provider_http_error", {
+        status: response.status,
+        ...(code ? { code } : {}),
+      });
+    }
     const data = await response.json();
-    const output = data.choices?.[0]?.message?.content?.trim();
+    const content = data.choices?.[0]?.message?.content;
+    const output = typeof content === "string" ? content.trim() : "";
     if (
       !output ||
       output.length > 600 ||
       output.toLowerCase() === text.trim().toLowerCase()
     ) {
-      throw new Error("Invalid interpretation");
+      return useFallback("invalid_output");
     }
     return { text: output, engine: "groq" };
-  } catch {
-    return { text: fallback(text), engine: "fallback" };
+  } catch (error) {
+    return useFallback(
+      ["TimeoutError", "AbortError"].includes(error.name)
+        ? "timeout"
+        : error instanceof SyntaxError
+          ? "invalid_response"
+          : "request_failed",
+    );
   }
 }
