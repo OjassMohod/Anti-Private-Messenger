@@ -1231,6 +1231,22 @@ textarea::placeholder {
     font-size: 9px;
   }
 }
+.future-card .puzzle-hint {
+  font-family: inherit;
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1.65;
+  margin: 0 0 16px;
+  color: #6c7d5e;
+  border-left: 2px solid #c5d3b4;
+  padding-left: 10px;
+}
+.future-card .encoded-puzzle {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-style: normal;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
 @media (prefers-reduced-motion: reduce) {
   * {
     scroll-behavior: auto !important;

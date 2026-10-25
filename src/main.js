@@ -48,7 +48,7 @@ document.querySelector("#app").innerHTML = `
     <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong>Miscommunications</strong></span><span class="connection" id="connection"><i></i> Connection pending</span></header>
     <main>
       <div class="page-heading"><div><p class="eyebrow">COMMUNICATION, RECONSIDERED.</p><h1>Get the wrong<br>message across<span class="accent">.</span></h1><p class="page-description">A little effort. A lot of misunderstanding. Absolutely no privacy.</p></div><div class="protocol-stamp"><span>${arrow}${arrow}</span><small>END-TO-END<br>MISCOMMUNICATION</small></div></div>
-      <div class="notice"><span class="notice-symbol">!</span><p><strong>A public service disannouncement.</strong> Your decoded message is broadcast to everyone except its recipient. They receive an encoded misinterpretation instead. Use fictional names and dummy messages.</p><span class="notice-tag">BY DESIGN</span></div>
+      <div class="notice"><span class="notice-symbol">!</span><p><strong>A public service disannouncement.</strong> Your message becomes a sensational headline for everyone except its recipient. They receive an encoded misinterpretation instead. Use fictional names and dummy messages.</p><span class="notice-tag">BY DESIGN</span></div>
       <section id="setup" class="setup-card" ${client ? "hidden" : ""}>
         <span class="tiny-label">ONE-TIME CONNECTION SETUP</span><h2>The infrastructure is ready for its credentials.</h2><p>Connect a Supabase Free project to begin. No messages are being sent yet.</p><ol><li>Enable anonymous sign-in and run <code>supabase/migrations/001_initial.sql</code>.</li><li>Set the two public <code>VITE_SUPABASE_…</code> variables and the two server-only Supabase variables.</li><li>Restart locally, or redeploy on Vercel. See <code>README.md</code> for the exact steps.</li></ol><p class="muted">Groq is optional. The deterministic misinterpreter works without an API key.</p>
       </section>
@@ -61,13 +61,13 @@ document.querySelector("#app").innerHTML = `
         <section id="composer" class="panel composer"><div class="panel-heading"><div><span class="section-number">01</span><h2>Compose a misunderstanding</h2></div><span class="pill">OUTGOING</span></div>
           <form id="send-form">
             <label for="recipient">WHO SHOULD MISS THE POINT?</label><div class="select-wrap"><select id="recipient" disabled><option value="">Sign in to choose a recipient</option></select><span>⌄</span></div>
-            <div class="future-card"><div class="future-header"><span class="future-icon">✳</span><span>Chat Future</span><span class="tiny-label">INCOMING FROM TOMORROW</span></div><p id="puzzle">Select a recipient. The future has an unnecessarily cryptic instruction for your next message.</p><div class="future-footer"><span id="challenge-label">NO FUTURE ASSIGNED</span><button id="new-challenge" type="button" disabled>Request another ↻</button></div></div>
+            <div class="future-card"><div class="future-header"><span class="future-icon">✳</span><span>Chat Future</span><span class="tiny-label">INCOMING FROM TOMORROW</span></div><p id="puzzle">Select a recipient. The future has an unnecessarily cryptic instruction for your next message.</p><p id="puzzle-hint" class="puzzle-hint" hidden></p><div class="future-footer"><span id="challenge-label">NO FUTURE ASSIGNED</span><button id="new-challenge" type="button" disabled>Request another ↻</button></div></div>
             <div class="field-heading"><label for="ciphertext">YOUR MANUALLY ENCODED MESSAGE</label><span id="char-count">0 / 280</span></div><textarea id="ciphertext" placeholder="Do the work yourself. Enter your ciphertext here…" maxlength="280" rows="5" required disabled></textarea>
-            <p class="field-note">We decode it. Everyone else reads it. Your recipient gets something else.</p>
+            <p class="field-note">We decode it. Everyone else gets the headline. Your recipient gets a different misunderstanding.</p>
             <div class="send-footer"><span>⌁ &nbsp; Insecurity is the protocol.</span><button class="button primary" id="send-button" disabled>Transmit poorly <span>${arrow}</span></button></div>
           </form>
         </section>
-        <div class="right-column"><section class="panel broadcast" id="broadcast-panel"><div class="panel-heading"><div><span class="section-number">02</span><h2>Public broadcast</h2></div><span class="pill green">EXCEPT YOU, RECIPIENT</span></div><p class="panel-description">Other people's messages, in plain sight. Yours too.</p><div id="broadcast-list" class="message-list"></div></section>
+        <div class="right-column"><section class="panel broadcast" id="broadcast-panel"><div class="panel-heading"><div><span class="section-number">02</span><h2>Public broadcast</h2></div><span class="pill green">EXCEPT YOU, RECIPIENT</span></div><p class="panel-description">Spicy headlines. Dubious journalism. Your message is the scandal.</p><div id="broadcast-list" class="message-list"></div></section>
         <section class="panel inbox" id="inbox-panel"><div class="panel-heading"><div><span class="section-number">03</span><h2>Your private-ish inbox</h2></div><span class="pill purple">ROT13</span></div><p class="panel-description">Someone didn't say this to you. Decode it anyway.</p><div class="inbox-hint">↔ &nbsp; A meets N. B meets O. Half an alphabet away.</div><div id="inbox-list" class="message-list"></div></section></div>
       </div>
       <footer><span>ANTI-PRIVATE © ${new Date().getFullYear()} <span class="footer-divider">/</span> All wrongs reserved.</span><span>Built to miss the point. <span class="footer-star">✳</span></span></footer>
@@ -99,12 +99,12 @@ function renderMessages() {
     rows
       .map(
         (row) =>
-          `<article class="message ${kind}"><div class="message-meta"><span class="message-avatar">${escape(name(row.sender_id).slice(0, 1).toUpperCase())}</span><strong>${escape(name(row.sender_id))}</strong><span class="message-direction">${kind === "broadcast" ? `→ not ${escape(name(row.recipient_id))}` : "→ you"}</span><time datetime="${escape(row.created_at)}">${time(row.created_at)}</time></div><p class="message-body">${escape(kind === "broadcast" ? row.original : row.ciphertext)}</p><span class="message-label">${kind === "broadcast" ? "DECODED & PUBLIC" : "MISINTERPRETED · ROT13"}</span></article>`,
+          `<article class="message ${kind}"><div class="message-meta"><span class="message-avatar">${escape(name(row.sender_id).slice(0, 1).toUpperCase())}</span><strong>${escape(name(row.sender_id))}</strong><span class="message-direction">${kind === "broadcast" ? `→ not ${escape(name(row.recipient_id))}` : "→ you"}</span><time datetime="${escape(row.created_at)}">${time(row.created_at)}</time></div><p class="message-body">${escape(kind === "broadcast" ? row.original : row.ciphertext)}</p><span class="message-label">${kind === "broadcast" ? "SATIRICAL PUBLIC DISPATCH" : "MISINTERPRETED · ROT13"}</span></article>`,
       )
       .join("");
   $("broadcast-list").innerHTML = state.broadcasts.length
     ? render(state.broadcasts, "broadcast")
-    : '<div class="empty-state"><span>◎</span><strong>A suspicious amount of quiet.</strong><p>Decoded messages appear here, unless they were meant for you.</p></div>';
+    : '<div class="empty-state"><span>◎</span><strong>No scandals to report. Yet.</strong><p>Sensational headlines appear here, unless the message was meant for you.</p></div>';
   $("inbox-list").innerHTML = state.inbox.length
     ? render(state.inbox, "inbox")
     : '<div class="empty-state"><span>▤</span><strong>No misunderstandings. Yet.</strong><p>Your encoded misinterpretations will arrive here.</p></div>';
@@ -298,6 +298,8 @@ async function requestChallenge() {
   const current = ++challengeRequest;
   state.challenge = null;
   state.pending = null;
+  $("puzzle-hint").hidden = true;
+  $("puzzle").classList.remove("encoded-puzzle");
   updateComposer();
   if (!state.recipient) {
     $("puzzle").textContent = "Select a recipient. The future is waiting.";
@@ -311,6 +313,9 @@ async function requestChallenge() {
     if (current !== challengeRequest) return;
     state.challenge = result;
     $("puzzle").textContent = result.text;
+    $("puzzle").classList.add("encoded-puzzle");
+    $("puzzle-hint").textContent = result.hint;
+    $("puzzle-hint").hidden = false;
     $("challenge-label").textContent =
       `${result.label} · EXPIRES ${time(result.expires_at)}`;
   } catch (error) {
@@ -352,7 +357,7 @@ $("send-form").addEventListener("submit", async (event) => {
   };
   state.sending = true;
   updateComposer();
-  status("Decoding. Broadcasting indiscreetly. Misinterpreting.");
+  status("Decoding. Manufacturing headlines. Misinterpreting.");
   try {
     const result = await api("send", state.pending);
     state.challenge = null;
@@ -361,6 +366,8 @@ $("send-form").addEventListener("submit", async (event) => {
     $("char-count").textContent = "0 / 280";
     $("puzzle").textContent =
       "A misunderstanding has been delivered. Request a new future for your next message.";
+    $("puzzle").classList.remove("encoded-puzzle");
+    $("puzzle-hint").hidden = true;
     $("challenge-label").textContent = "FUTURE SUCCESSFULLY WASTED";
     status(
       `Delivered poorly.${result.engine === "fallback" ? " The deterministic misinterpreter handled this transmission." : ""}`,

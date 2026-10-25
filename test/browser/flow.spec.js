@@ -7,6 +7,7 @@ const alice = "11111111-1111-4111-8111-111111111111";
 const bob = "22222222-2222-4222-8222-222222222222";
 const charlie = "33333333-3333-4333-8333-333333333333";
 const challenge = "44444444-4444-4444-8444-444444444444";
+const headline = "BREAKING: Friendly Greeting Sparks Diplomatic Emergency";
 const profiles = [
   { id: alice, username: "Alice" },
   { id: bob, username: "Bob" },
@@ -65,7 +66,9 @@ async function fixture(context, id, shared, { failFirstSend = false } = {}) {
       contentType: "application/json",
       body: JSON.stringify({
         id: challenge,
-        text: "A became D. Three places ahead.",
+        text: rot13("A became D. Three places ahead."),
+        encoding: "rot13",
+        hint: "Envelope: ROT13. A ↔ N, B ↔ O. Decode this dispatch to discover your outgoing cipher.",
         label: "Dispatch from tomorrow / 03",
         expires_at: new Date(Date.now() + 600000).toISOString(),
       }),
@@ -82,7 +85,7 @@ async function fixture(context, id, shared, { failFirstSend = false } = {}) {
         recipient_id: bob,
         created_at: new Date().toISOString(),
       };
-      shared.broadcasts.unshift({ ...common, original: "HELLO" });
+      shared.broadcasts.unshift({ ...common, original: headline });
       shared.inbox.unshift({
         ...common,
         ciphertext: rot13("The moon is our manager."),
@@ -137,14 +140,18 @@ test("three isolated browser sessions compose and automatically synchronize", as
       pages.map((p, i) => login(p, ["Alice", "Bob", "Charlie"][i])),
     );
     await pages[0].locator("#recipient").selectOption(bob);
-    await expect(pages[0].locator("#puzzle")).toContainText("Three places");
+    await expect(pages[0].locator("#puzzle")).toHaveText(
+      rot13("A became D. Three places ahead."),
+    );
+    await expect(pages[0].locator("#puzzle")).not.toContainText("Three places");
+    await expect(pages[0].locator("#puzzle-hint")).toContainText("ROT13");
     await pages[0].locator("#ciphertext").fill("KHOOR");
     await pages[0].getByRole("button", { name: "Transmit poorly" }).click();
     await expect(pages[0].getByRole("status")).toContainText(
       "Delivered poorly",
     );
     await expect(pages[2].locator("#broadcast-list .message-body")).toHaveText(
-      "HELLO",
+      headline,
       { timeout: 10000 },
     );
     await expect(pages[1].locator("#inbox-list .message-body")).toHaveText(
@@ -152,8 +159,11 @@ test("three isolated browser sessions compose and automatically synchronize", as
       { timeout: 10000 },
     );
     await expect(pages[1].locator("#broadcast-list")).not.toContainText(
-      "HELLO",
+      headline,
     );
+    await expect(
+      pages[2].locator("#broadcast-list .message-body"),
+    ).not.toHaveText("HELLO");
     await expect(pages[0].locator("#inbox-list .message")).toHaveCount(0);
     await pages[0].screenshot({
       path: "test-results/alice-desktop.png",

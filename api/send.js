@@ -52,7 +52,8 @@ export function createSendHandler(deps = {}) {
       p_challenge_id: body.challenge_id,
       p_submission_id: body.submission_id,
       p_ciphertext: body.ciphertext,
-      p_original: original,
+      // Legacy database field name: new broadcasts store ONLY the headline here.
+      p_original: interpreted.headline,
       p_inbox_ciphertext: rot13(interpreted.text),
       p_engine: interpreted.engine,
     });

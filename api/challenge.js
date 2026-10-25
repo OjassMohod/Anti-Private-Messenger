@@ -1,7 +1,7 @@
 import { randomInt } from "node:crypto";
 import { endpoint, HttpError, isUuid } from "../server/http.js";
 import { getAdmin, authenticate, checkDatabase } from "../server/database.js";
-import { puzzles } from "../server/ciphers.js";
+import { puzzles, rot13 } from "../server/ciphers.js";
 
 export function createChallengeHandler(deps = {}) {
   return endpoint(async (req, body) => {
@@ -16,7 +16,14 @@ export function createChallengeHandler(deps = {}) {
       p_cipher: cipher,
     });
     checkDatabase(error);
-    return { id: data.id, expires_at: data.expires_at, ...puzzles[cipher] };
+    return {
+      id: data.id,
+      expires_at: data.expires_at,
+      label: puzzles[cipher].label,
+      text: rot13(puzzles[cipher].text),
+      encoding: "rot13",
+      hint: "Envelope: ROT13. A ↔ N, B ↔ O. Decode this dispatch to discover your outgoing cipher.",
+    };
   });
 }
 

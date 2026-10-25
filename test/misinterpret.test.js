@@ -1,6 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fallback, misinterpret } from "../server/misinterpret.js";
+import {
+  fallback,
+  fallbackHeadline,
+  misinterpret,
+} from "../server/misinterpret.js";
+
+const headline =
+  "BREAKING: Ordinary Greeting Sparks Emergency Lunar Management Summit";
+const interpretation = "I have appointed the moon as our interim manager.";
+const content = (changes = {}) =>
+  JSON.stringify({ headline, interpretation, ...changes });
 
 test("fallback is deterministic and changes the message", () => {
   for (const input of [
@@ -11,6 +21,9 @@ test("fallback is deterministic and changes the message", () => {
   ]) {
     assert.equal(fallback(input), fallback(input));
     assert.notEqual(fallback(input), input);
+    assert.equal(fallbackHeadline(input), fallbackHeadline(input));
+    assert.notEqual(fallbackHeadline(input), input);
+    assert.ok(fallbackHeadline(input).length <= 180);
   }
 });
 test("missing provider configuration never makes a network call", async () => {
@@ -20,6 +33,7 @@ test("missing provider configuration never makes a network call", async () => {
     logger: () => {},
   });
   assert.equal(result.engine, "fallback");
+  assert.equal(result.headline, fallbackHeadline("HELLO"));
   assert.deepEqual(result.diagnostic, {
     reason: "missing_configuration",
     hasApiKey: false,
@@ -35,7 +49,8 @@ test("provider request uses server authorization and treats the message as data"
       assert.ok(options.signal instanceof AbortSignal);
       const body = JSON.parse(options.body);
       assert.equal(body.model, "test-model");
-      assert.equal(body.max_completion_tokens, 120);
+      assert.equal(body.max_completion_tokens, 240);
+      assert.deepEqual(body.response_format, { type: "json_object" });
       assert.equal(body.max_tokens, undefined);
       assert.equal(body.reasoning_effort, undefined);
       assert.deepEqual(JSON.parse(body.messages[1].content), {
@@ -47,7 +62,7 @@ test("provider request uses server authorization and treats the message as data"
           choices: [
             {
               message: {
-                content: "I have appointed the moon as our interim manager.",
+                content: content(),
               },
             },
           ],
@@ -56,13 +71,15 @@ test("provider request uses server authorization and treats the message as data"
     },
   });
   assert.equal(result.engine, "groq");
+  assert.equal(result.headline, headline);
+  assert.equal(result.text, interpretation);
 });
 test("GPT-OSS gets a reasoning budget while only its final answer is delivered", async () => {
   const result = await misinterpret("HELLO", {
     env: { GROQ_API_KEY: "test-only", GROQ_MODEL: "openai/gpt-oss-120b" },
     fetcher: async (url, options) => {
       const body = JSON.parse(options.body);
-      assert.equal(body.max_completion_tokens, 768);
+      assert.equal(body.max_completion_tokens, 1024);
       assert.equal(body.reasoning_effort, "low");
       assert.equal(body.include_reasoning, false);
       return {
@@ -71,7 +88,7 @@ test("GPT-OSS gets a reasoning budget while only its final answer is delivered",
           choices: [
             {
               message: {
-                content: "The moon is now our manager.",
+                content: content(),
                 reasoning: "private model reasoning",
               },
             },
@@ -81,7 +98,8 @@ test("GPT-OSS gets a reasoning budget while only its final answer is delivered",
     },
   });
   assert.deepEqual(result, {
-    text: "The moon is now our manager.",
+    text: interpretation,
+    headline,
     engine: "groq",
   });
 });
@@ -101,7 +119,11 @@ for (const [name, fetcher] of [
     "unchanged output",
     async () => ({
       ok: true,
-      json: async () => ({ choices: [{ message: { content: "HELLO" } }] }),
+      json: async () => ({
+        choices: [
+          { message: { content: content({ interpretation: "HELLO" }) } },
+        ],
+      }),
     }),
   ],
   [
@@ -109,7 +131,11 @@ for (const [name, fetcher] of [
     async () => ({
       ok: true,
       json: async () => ({
-        choices: [{ message: { content: "x".repeat(601) } }],
+        choices: [
+          {
+            message: { content: content({ interpretation: "x".repeat(601) }) },
+          },
+        ],
       }),
     }),
   ],
@@ -121,8 +147,44 @@ for (const [name, fetcher] of [
       logger: () => {},
     });
     assert.equal(result.text, fallback("HELLO"));
+    assert.equal(result.headline, fallbackHeadline("HELLO"));
     assert.equal(result.engine, "fallback");
     assert.ok(result.diagnostic.reason);
+  });
+}
+
+for (const [name, output] of [
+  ["missing headline", content({ headline: undefined })],
+  ["missing interpretation", content({ interpretation: undefined })],
+  ["headline repeats the input", content({ headline: "HELLO" })],
+  ["oversized headline", content({ headline: "x".repeat(181) })],
+  [
+    "multiline headline",
+    content({ headline: "Breaking news\nAnother headline" }),
+  ],
+  [
+    "same text for both outputs",
+    content({ headline: "The same thing", interpretation: "The same thing" }),
+  ],
+  ["malformed model JSON", "This is not JSON"],
+  [
+    "invalid output types",
+    JSON.stringify({ headline: { text: "News" }, interpretation: ["text"] }),
+  ],
+]) {
+  test(`${name} falls back for both channels without exposing the original`, async () => {
+    const result = await misinterpret("HELLO", {
+      env: { GROQ_API_KEY: "test-only", GROQ_MODEL: "test-model" },
+      logger: () => {},
+      fetcher: async () => ({
+        ok: true,
+        json: async () => ({ choices: [{ message: { content: output } }] }),
+      }),
+    });
+    assert.equal(result.engine, "fallback");
+    assert.equal(result.headline, fallbackHeadline("HELLO"));
+    assert.equal(result.text, fallback("HELLO"));
+    assert.equal(result.diagnostic.reason, "invalid_output");
   });
 }
 

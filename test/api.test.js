@@ -4,7 +4,7 @@ import { Readable } from "node:stream";
 import { createSendHandler } from "../api/send.js";
 import { createChallengeHandler } from "../api/challenge.js";
 import { authenticate } from "../server/database.js";
-import { rot13 } from "../server/ciphers.js";
+import { rot13, puzzles } from "../server/ciphers.js";
 
 const alice = "11111111-1111-4111-8111-111111111111";
 const bob = "22222222-2222-4222-8222-222222222222";
@@ -89,14 +89,18 @@ async function request(
   return res;
 }
 
-test("send decodes on server, authenticates actual sender, atomically writes, never returns plaintext", async () => {
+test("send publishes only a headline, privately delivers the fun interpretation, and verifies the actual sender", async () => {
   const db = database();
   const response = await request(
     createSendHandler({
       db,
       misinterpret: async (text) => {
         assert.equal(text, "HELLO");
-        return { text: "The moon is our manager.", engine: "fallback" };
+        return {
+          text: "The moon is our manager.",
+          headline: "BREAKING: Greeting Sparks Lunar Management Crisis",
+          engine: "fallback",
+        };
       },
     }),
     payload,
@@ -110,7 +114,14 @@ test("send decodes on server, authenticates actual sender, atomically writes, ne
   });
   const call = db.calls.find(([fn]) => fn === "deliver_message")[1];
   assert.equal(call.p_sender_id, alice);
-  assert.equal(call.p_original, "HELLO");
+  assert.equal(
+    call.p_original,
+    "BREAKING: Greeting Sparks Lunar Management Crisis",
+  );
+  assert.ok(
+    !Object.values(call).includes("HELLO"),
+    "Decoded original must never be stored in the public broadcast",
+  );
   assert.equal(call.p_inbox_ciphertext, rot13("The moon is our manager."));
   assert.ok(
     db.calls.some(
@@ -203,6 +214,10 @@ test("challenge fixes sender and cipher server-side and never exposes database r
   const params = db.calls.find(([fn]) => fn === "issue_challenge")[1];
   assert.equal(params.p_sender_id, alice);
   assert.ok(["caesar", "atbash"].includes(params.p_cipher));
+  assert.equal(res.body.encoding, "rot13");
+  assert.match(res.body.hint, /ROT13/);
+  assert.equal(rot13(res.body.text), puzzles[params.p_cipher].text);
+  assert.notEqual(res.body.text, puzzles[params.p_cipher].text);
   assert.equal(
     (await request(createChallengeHandler({ db }), { recipient_id: alice }))
       .statusCode,

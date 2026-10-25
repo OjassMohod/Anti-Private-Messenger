@@ -1,6 +1,6 @@
 # Anti-Private Messenger
 
-**End-to-End Miscommunication.** A hackathon messenger that broadcasts your decoded message to everyone except the recipient, who receives a ROT13-encoded misinterpretation instead.
+**End-to-End Miscommunication.** A hackathon messenger that turns your decoded message into a spicy satirical headline for everyone except the recipient, who receives a ROT13-encoded fun misinterpretation instead. Even the Chat Future puzzle arrives encoded.
 
 Vite + plain JavaScript/CSS · Supabase Auth/PostgreSQL/Realtime · Vercel Functions · optional Groq. No paid dependencies, subscriptions, or credit card are required by the app. Select provider Free/Hobby plans; do not accept paid upgrades.
 
@@ -53,9 +53,9 @@ Leave Groq variables unset initially. The app then uses deterministic absurd int
 
 1. Open the app in **three isolated browser profiles/sessions**. Regular tabs often share an account. Use different browsers or separate profiles for Alice, Bob, and Charlie. Two incognito windows in the same browser may share storage too.
 2. Enter fictional usernames. Users appear in the selector within five seconds; usernames are labels, not unique login credentials. The short ID suffix distinguishes duplicates.
-3. Alice selects Bob. Read the assigned Chat Future puzzle.
+3. Alice selects Bob. Decode the ROT13 envelope around the Chat Future puzzle using its short hint (A↔N, B↔O), then read the puzzle to identify the outgoing cipher. There is intentionally no automatic decoder.
 4. If it says **A became D**, type `KHOOR`. If it describes an alphabet mirror, type `SVOOL`. Either decodes to `HELLO`.
-5. Alice clicks **Transmit poorly**. Alice and Charlie see `HELLO` in the broadcast. Bob sees no corresponding original and gets an encoded misinterpretation in his inbox.
+5. Alice clicks **Transmit poorly**. Alice and Charlie see a sensational headline about the greeting in the broadcast. Bob sees no corresponding headline and gets a different, ROT13-encoded fun misinterpretation in his inbox. The decoded original is not written to the public broadcast for new messages.
 6. Incoming messages use ROT13: A↔N, B↔O. There is intentionally no automatic decrypt button.
 7. Request a new future for each new message. Challenges last ten minutes. Challenge creation and successful sends have a three-second cooldown per sender.
 
@@ -70,11 +70,11 @@ Signing out abandons an anonymous identity; there is no password recovery. Reloa
 3. Set `GROQ_MODEL` to a currently available text chat model in your account. Model names and free quotas change, so the app does not assume a model ID.
 4. Restart locally or redeploy on Vercel.
 
-The server makes one short request with a 3.5-second timeout. Missing configuration, provider errors, rate limits, malformed/empty responses, an unchanged message, or excessive output use the deterministic fallback. Keys never enter the frontend bundle. The UI explicitly identifies fallback delivery.
+The server makes one request with a 3.5-second timeout, asking for a JSON object containing both a 6–16 word tabloid `headline` (maximum 180 characters) and a 15–45 word fun `interpretation` (maximum 600 characters). Only the headline is broadcast; only the ROT13 interpretation enters the private inbox. Missing configuration, provider errors, rate limits, malformed/missing outputs, repeated input, or excessive output use deterministic fallbacks for both channels. Keys never enter the frontend bundle. The UI explicitly identifies fallback delivery.
 
-The prompt asks Groq to distort the actual message's intention while retaining a recognizable topic, detail, or social gesture. It discourages unrelated surreal scenes. Responses are generated independently, so unique wording is not guaranteed; basic validation does not prove semantic relevance.
+The prompt asks Groq to distort the actual message's intention while retaining a recognizable topic, detail, or social gesture. The headline is fictional tabloid-style satire, and the inbox version is a separate first-person misinterpretation. It discourages unrelated surreal scenes. Responses are generated independently, so unique wording is not guaranteed; basic validation does not prove semantic relevance.
 
-`openai/gpt-oss-120b` and `openai/gpt-oss-20b` use low reasoning effort and a larger completion budget so the model can finish its final answer. Reasoning text is excluded from the response and never delivered to users. Other models use the short completion budget.
+`openai/gpt-oss-120b` and `openai/gpt-oss-20b` use low reasoning effort and a 1,024-token completion budget so the model can finish both outputs. Reasoning text is excluded from the response and never delivered to users. Other models use a 240-token budget. JSON mode keeps the two outputs distinct.
 
 For troubleshooting, authenticated send responses and Vercel function logs include a safe fallback category (`missing_configuration`, `provider_http_error`, `timeout`, `invalid_output`, `invalid_response`, or `request_failed`). HTTP failures include a status and, when recognized, a fixed provider error code. Missing configuration reports only whether each variable is present. Keys, message text, and raw provider error messages are never included in these diagnostics.
 
@@ -112,6 +112,7 @@ The live security script creates three temporary anonymous users and profiles, s
 ## Security model
 
 - Supabase verifies each bearer token with `auth.getUser` on the server; the body cannot choose the sender.
+- **Storage compatibility:** the existing `broadcasts.original` column and `p_original` function parameter retain their legacy names, but new sends store the generated headline there. No additional migration is needed. Historical entries keep their prior contents. The decoded original is used in server memory for Groq and is not separately persisted as public text; the server-owned challenge retains the submitted ciphertext for safe retries.
 - Challenges are server-owned, tied to sender/recipient, expire, and can be consumed once.
 - `broadcasts` SELECT RLS excludes `auth.uid() = recipient_id`, even for a query by known message ID. `inbox_messages` SELECT RLS permits only its recipient. Unauthenticated visitors have no table access.
 - Browser roles cannot write messages, read challenges, or execute either privileged database function. Profile writes are limited to the signed-in user's username and own profile creation.

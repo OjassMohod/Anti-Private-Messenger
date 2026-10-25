@@ -124,29 +124,25 @@ try {
   );
   assert.ok(
     (
-      await alice.client
-        .from("broadcasts")
-        .insert({
-          id: randomUUID(),
-          challenge_id: randomUUID(),
-          sender_id: alice.id,
-          recipient_id: bob.id,
-          original: "forged",
-        })
+      await alice.client.from("broadcasts").insert({
+        id: randomUUID(),
+        challenge_id: randomUUID(),
+        sender_id: alice.id,
+        recipient_id: bob.id,
+        original: "forged",
+      })
     ).error,
   );
   assert.ok(
     (
-      await alice.client
-        .from("inbox_messages")
-        .insert({
-          id: randomUUID(),
-          challenge_id: randomUUID(),
-          sender_id: alice.id,
-          recipient_id: bob.id,
-          ciphertext: "forged",
-          engine: "fallback",
-        })
+      await alice.client.from("inbox_messages").insert({
+        id: randomUUID(),
+        challenge_id: randomUUID(),
+        sender_id: alice.id,
+        recipient_id: bob.id,
+        ciphertext: "forged",
+        engine: "fallback",
+      })
     ).error,
   );
   pass("profile isolation, challenge secrecy, direct writes and RPC denial");
@@ -170,10 +166,15 @@ try {
     sender_id: charlie.id,
   });
   assert.equal(issued.status, 200, "Challenge endpoint must succeed");
+  assert.equal(issued.body.encoding, "rot13");
+  assert.match(issued.body.hint, /ROT13/);
+  assert.notEqual(rot13(issued.body.text), issued.body.text);
   const payload = {
     challenge_id: issued.body.id,
     submission_id: randomUUID(),
-    ciphertext: issued.body.text.includes("A became D") ? "KHOOR" : "SVOOL",
+    ciphertext: rot13(issued.body.text).includes("A became D")
+      ? "KHOOR"
+      : "SVOOL",
     sender_id: charlie.id,
     recipient_id: charlie.id,
   };
@@ -211,7 +212,11 @@ try {
       .eq("id", payload.submission_id)
       .single(),
   );
-  assert.equal(broadcast.original, "HELLO");
+  // Database column keeps its legacy name; new rows contain only the headline.
+  assert.ok(
+    broadcast.original.trim().length > 0 && broadcast.original.length <= 180,
+  );
+  assert.notEqual(broadcast.original.toUpperCase(), "HELLO");
   assert.equal(broadcast.sender_id, alice.id);
   assert.equal(broadcast.recipient_id, bob.id);
   const inbox = ok(
@@ -225,7 +230,7 @@ try {
   const visitor = createClient(url, key, options);
   assert.ok((await visitor.from("broadcasts").select("*")).error);
   pass(
-    "Alice/Charlie see original; Bob excluded even by ID; only Bob reads inbox; anonymous visitor denied",
+    "Alice/Charlie see headline instead of original; Bob excluded even by ID; only Bob reads inbox; anonymous visitor denied",
   );
 
   stage = "verifying actual Realtime delivery and exclusion";
