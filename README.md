@@ -65,6 +65,18 @@ Realtime triggers authorized database refreshes. A five-second polling fallback 
 
 Signing out abandons an anonymous identity; there is no password recovery. Reloading while signed in retains the same account.
 
+## Scripted pitch demo
+
+Open `/pitch-demo` for the prepared Afaan/Ojass conversation in a single browser window. This is explicitly labeled **scripted pitch replay**: it uses the supplied text and fixed media assignments, has a simulated demo-role sign-in, and makes no Groq, Supabase, or message API calls. Live messaging and real authorization remain separate.
+
+Before sharing your screen, expand **Prepare demo images** and add one image to each of the eight labeled slots. Accepted formats are JPG, PNG, WebP and GIF, up to 5 MB each. These files stay in this browser's IndexedDB; they are not uploaded to a server. They survive reloads and **Reset replay** on the same device/browser profile. Other devices and private sessions do not inherit them. Original image files can also be bundled later through the `src` fields in `src/pitch-data.js`; missing images have explicit placeholders instead of broken image links.
+
+The assignments are: (1) recipient kissing image / broadcast reversed evolution; (2) recipient smoking cat / broadcast gun meme; (3) recipient cat face / broadcast explosion cat; (4) recipient pouring-drink cat / broadcast man in a funny pose. The last two are deliberately distinct.
+
+For the pitch: click **Start scripted demo** to enter as Afaan. **Next cue** loads Caesar +3 ciphertext, transmits it, reveals the recipient's ROT13 meaning, shows the prepared public headline, and switches sender for the next scene. There are four scenes. Use the visible Sender/Recipient/Broadcast tabs for extra perspective changes. The broadcast viewer selector illustrates recipient exclusion; the replay's filtering is presenter logic, not a substitute for the live app's server policies. Right/left arrow keys advance/rewind when not typing. Reset returns to demo sign-in while preserving images.
+
+Share this one window or the entire display. Use the live messenger separately for a real AI transmission if desired. The replay has its own HTML/JS/CSS build entry and no database setup or credentials. No audio is included.
+
 ## Miscommunication Meter
 
 Open **Miscommunication Meter** in the sidebar or **Open the meter** in the top bar. Its direct URL is `/miscommunication-meter`. The same anonymous account works across both pages. Select any two registered people, including pairs you are not part of.
