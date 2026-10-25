@@ -2,9 +2,61 @@ import { createClient } from "@supabase/supabase-js";
 import { createMeter } from "./meter.js";
 import "./style.css";
 
-const meterPage =
-  location.pathname.replace(/\/$/, "") === "/miscommunication-meter";
-if (meterPage) document.title = "Miscommunication Meter — Anti-Private";
+const route = location.pathname.replace(/\/$/, "") || "/";
+const view =
+  {
+    "/broadcast": "broadcast",
+    "/inbox": "inbox",
+    "/miscommunication-meter": "meter",
+  }[route] || "message";
+const meterPage = view === "meter";
+const messagePage = view === "message";
+const broadcastPage = view === "broadcast";
+const inboxPage = view === "inbox";
+const pages = {
+  message: {
+    title: "Message",
+    heading: "Compose a<br>misunderstanding",
+    eyebrow: "OUTGOING / COMMUNICATION, RECONSIDERED.",
+    description:
+      "A little effort. A lot of misunderstanding. Send your next bad idea.",
+    welcome: "Pick someone to misunderstand.",
+  },
+  broadcast: {
+    title: "Public broadcast",
+    heading: "Public<br>broadcast",
+    eyebrow: "BREAKING NONSENSE / PUBLIC DISPATCHES",
+    description:
+      "Spicy headlines. Dubious journalism. Everyone else's business.",
+    welcome: "The latest scandals are waiting below.",
+  },
+  inbox: {
+    title: "Your inbox",
+    heading: "Your<br>inbox",
+    eyebrow: "INCOMING / EXCLUSIVELY MISUNDERSTOOD",
+    description: "Someone didn't say this to you. Decode it anyway.",
+    welcome: "Your encoded misunderstandings are waiting below.",
+  },
+  meter: {
+    title: "Miscommunication Meter",
+    welcome: "Select any two people to inspect their scorecard.",
+  },
+};
+const page = pages[view];
+document.title = `${page.title} — Anti-Private`;
+const pageLink = (key, href, label, icon = "") =>
+  `<a class="nav-item ${view === key ? "active" : ""}" href="${href}" ${view === key ? 'aria-current="page"' : ""}><span>${icon}</span>${label}${view === key ? '<span class="nav-dot"></span>' : ""}</a>`;
+const pageTabs = [
+  ["message", "/message", "Message"],
+  ["broadcast", "/broadcast", "Broadcast"],
+  ["inbox", "/inbox", "Inbox"],
+  ["meter", "/miscommunication-meter", "Meter"],
+]
+  .map(
+    ([key, href, label]) =>
+      `<a href="${href}" ${view === key ? 'aria-current="page"' : ""}>${label}</a>`,
+  )
+  .join("");
 
 let client;
 try {
@@ -39,21 +91,22 @@ const arrow =
 
 document.querySelector("#app").innerHTML = `
   <aside class="sidebar">
-    <a class="brand" href="/" aria-label="Anti-Private home"><span class="brand-mark">a${arrow}</span><span>anti-private<span class="brand-sub">MESSENGER / BETA</span></span></a>
+    <a class="brand" href="/message" aria-label="Anti-Private home"><span class="brand-mark">a${arrow}</span><span>anti-private<span class="brand-sub">MESSENGER / BETA</span></span></a>
     <p class="workspace-label">YOUR WORKSPACE <span>01</span></p>
     <nav aria-label="Workspace">
-      <a class="nav-item ${meterPage ? "" : "active"}" href="/#composer"><span>${arrow}</span> Miscommunications ${meterPage ? "" : '<span class="nav-dot"></span>'}</a>
-      <a class="nav-item" href="/#broadcast-panel"><span>◎</span> Public broadcast <span id="broadcast-count" class="nav-count">0</span></a>
-      <a class="nav-item" href="/#inbox-panel"><span>▤</span> Your inbox <span id="inbox-count" class="nav-count">0</span></a>
-      <a class="nav-item ${meterPage ? "active" : ""}" href="/miscommunication-meter"><span>◉</span> Miscommunication Meter ${meterPage ? '<span class="nav-dot"></span>' : ""}</a>
+      ${pageLink("message", "/message", "Message", arrow)}
+      ${pageLink("broadcast", "/broadcast", "Public broadcast", "◎")}
+      ${pageLink("inbox", "/inbox", "Your inbox", "▤")}
+      ${pageLink("meter", "/miscommunication-meter", "Miscommunication Meter", "◉")}
     </nav>
     <div class="sidebar-note"><span class="tiny-label">OUR COMMITMENT</span><p>Your message.<br>Everyone else's business.</p><span class="note-arrow">${arrow}</span></div>
     <div class="account"><span class="avatar" id="account-avatar">?</span><div><strong id="account-name">Unidentified person</strong><span id="account-detail">Awaiting a bad decision</span></div><button id="logout" class="icon-button" title="Sign out" aria-label="Sign out" hidden>↪</button></div>
   </aside>
   <div class="workspace">
-    <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong>${meterPage ? "Miscommunication Meter" : "Miscommunications"}</strong></span><a class="view-switch" href="${meterPage ? "/" : "/miscommunication-meter"}">${meterPage ? "Back to messenger" : "Open the meter"}</a><span class="connection" id="connection"><i></i> Connection pending</span></header>
-    <main>
-      <div class="page-heading" ${meterPage ? "hidden" : ""}><div><p class="eyebrow">COMMUNICATION, RECONSIDERED.</p><h1>Get the wrong<br>message across<span class="accent">.</span></h1><p class="page-description">A little effort. A lot of misunderstanding. Absolutely no privacy.</p></div><div class="protocol-stamp"><span>${arrow}${arrow}</span><small>END-TO-END<br>MISCOMMUNICATION</small></div></div>
+    <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong>${page.title}</strong></span><a class="view-switch" href="${meterPage ? "/message" : "/miscommunication-meter"}">${meterPage ? "Back to messenger" : "Open the meter"}</a><span class="connection" id="connection"><i></i> Connection pending</span></header>
+    <nav class="page-tabs" aria-label="Pages">${pageTabs}</nav>
+    <main class="page-${view}">
+      <div class="page-heading" ${meterPage ? "hidden" : ""}><div><p class="eyebrow">${page.eyebrow || ""}</p><h1>${page.heading || ""}<span class="accent">.</span></h1><p class="page-description">${page.description || ""}</p></div><div class="protocol-stamp"><span>${arrow}${arrow}</span><small>END-TO-END<br>MISCOMMUNICATION</small></div></div>
       <div class="notice" ${meterPage ? "hidden" : ""}><span class="notice-symbol">!</span><p><strong>A public service disannouncement.</strong> Your message becomes a sensational headline for everyone except its recipient. They receive an encoded misinterpretation instead. Use fictional names and dummy messages.</p><span class="notice-tag">BY DESIGN</span></div>
       <section id="setup" class="setup-card" ${client ? "hidden" : ""}>
         <span class="tiny-label">ONE-TIME CONNECTION SETUP</span><h2>The infrastructure is ready for its credentials.</h2><p>Connect a Supabase Free project to begin. No messages are being sent yet.</p><ol><li>Enable anonymous sign-in and run <code>supabase/migrations/001_initial.sql</code>.</li><li>Set the two public <code>VITE_SUPABASE_…</code> variables and the two server-only Supabase variables.</li><li>Restart locally, or redeploy on Vercel. See <code>README.md</code> for the exact steps.</li></ol><p class="muted">Groq is optional. The deterministic misinterpreter works without an API key.</p>
@@ -63,9 +116,10 @@ document.querySelector("#app").innerHTML = `
         <form id="login-form"><label for="username">Your username</label><div class="input-row"><input id="username" name="username" placeholder="e.g. Alice" minlength="2" maxlength="24" required autocomplete="nickname"><button class="button primary" id="login-button">Enter workspace <span>${arrow}</span></button></div></form>
       </section>
       <p id="status" class="status" role="status" aria-live="polite"></p>
+      <a id="delivery-link" class="delivery-link" href="/broadcast" hidden>View your public headline ${arrow}</a>
       <section id="meter-page" ${meterPage ? "" : "hidden"}></section>
-      <div class="content-grid" ${meterPage ? "hidden" : ""}>
-        <section id="composer" class="panel composer"><div class="panel-heading"><div><span class="section-number">01</span><h2>Compose a misunderstanding</h2></div><span class="pill">OUTGOING</span></div>
+      <div class="content-grid page-content" ${meterPage ? "hidden" : ""}>
+        <section id="composer" class="panel composer" ${messagePage ? "" : "hidden"}><div class="panel-heading"><div><span class="section-number">01</span><h2>New transmission</h2></div><span class="pill">OUTGOING</span></div>
           <form id="send-form">
             <label for="recipient">WHO SHOULD MISS THE POINT?</label><div class="select-wrap"><select id="recipient" disabled><option value="">Sign in to choose a recipient</option></select><span>⌄</span></div>
             <div class="future-card"><div class="future-header"><span class="future-icon">✳</span><span>Chat Future</span><span class="tiny-label">INCOMING FROM TOMORROW</span></div><p id="puzzle">Select a recipient. The future has an unnecessarily cryptic instruction for your next message.</p><div class="future-footer"><span id="challenge-label">NO FUTURE ASSIGNED</span><button id="new-challenge" type="button" disabled>Request another ↻</button></div></div>
@@ -74,8 +128,8 @@ document.querySelector("#app").innerHTML = `
             <div class="send-footer"><span>⌁ &nbsp; Insecurity is the protocol.</span><button class="button primary" id="send-button" disabled>Transmit poorly <span>${arrow}</span></button></div>
           </form>
         </section>
-        <div class="right-column"><section class="panel broadcast" id="broadcast-panel"><div class="panel-heading"><div><span class="section-number">02</span><h2>Public broadcast</h2></div><span class="pill green">EXCEPT YOU, RECIPIENT</span></div><p class="panel-description">Spicy headlines. Dubious journalism. Your message is the scandal.</p><div id="broadcast-list" class="message-list"></div></section>
-        <section class="panel inbox" id="inbox-panel"><div class="panel-heading"><div><span class="section-number">03</span><h2>Your private-ish inbox</h2></div><span class="pill purple">ROT13</span></div><p class="panel-description">Someone didn't say this to you. Decode it anyway.</p><div class="inbox-hint">↔ &nbsp; A meets N. B meets O. Half an alphabet away.</div><div id="inbox-list" class="message-list"></div></section></div>
+        <div class="right-column" ${broadcastPage || inboxPage ? "" : "hidden"}><section class="panel broadcast" id="broadcast-panel" ${broadcastPage ? "" : "hidden"}><div class="panel-heading"><div><span class="section-number">02</span><h2>Latest headlines</h2><span class="page-counter" id="broadcast-count">0</span></div><span class="pill green">EXCEPT YOU, RECIPIENT</span></div><p class="panel-description">Your message is the scandal. Headlines meant for you are excluded.</p><div id="broadcast-list" class="message-list"></div></section>
+        <section class="panel inbox" id="inbox-panel" ${inboxPage ? "" : "hidden"}><div class="panel-heading"><div><span class="section-number">03</span><h2>Received misunderstandings</h2><span class="page-counter" id="inbox-count">0</span></div><span class="pill purple">ROT13</span></div><p class="panel-description">For your eyes only. Your sender probably meant something else.</p><div class="inbox-hint">↔ &nbsp; A meets N. B meets O. Half an alphabet away.</div><div id="inbox-list" class="message-list"></div></section></div>
       </div>
       <footer><span>ANTI-PRIVATE © ${new Date().getFullYear()} <span class="footer-divider">/</span> All wrongs reserved.</span><span>Built to miss the point. <span class="footer-star">✳</span></span></footer>
     </main>
@@ -180,14 +234,14 @@ async function refresh() {
         .select("id,username")
         .order("created_at", { ascending: true })
         .limit(100),
-      meterPage
+      !broadcastPage
         ? Promise.resolve({ data: [], error: null })
         : client
             .from("broadcasts")
             .select("id,sender_id,recipient_id,original,created_at")
             .order("created_at", { ascending: false })
             .limit(50),
-      meterPage
+      !inboxPage
         ? Promise.resolve({ data: [], error: null })
         : client
             .from("inbox_messages")
@@ -237,34 +291,34 @@ async function startSession(session) {
     connection("Auto refresh · 10s", true);
     return;
   }
+  if (messagePage) {
+    connection("Ready to miscommunicate", true);
+    return;
+  }
   if (state.channel) await client.removeChannel(state.channel);
-  state.channel = client
-    .channel(`workspace-${session.user.id}`, {
-      config: { postgres_changes_options: { wait: true } },
-    })
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "broadcasts" },
-      () => refresh(),
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "inbox_messages",
-        filter: `recipient_id=eq.${session.user.id}`,
-      },
-      () => refresh(),
-    )
-    .subscribe((event) => {
-      if (!state.session) return;
-      if (event === "SUBSCRIBED") {
-        connection("Live updates", true);
-        refresh();
-      } else if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(event))
-        connection("Automatic sync · every 5s");
-    });
+  state.channel = client.channel(`${view}-${session.user.id}`, {
+    config: { postgres_changes_options: { wait: true } },
+  });
+  state.channel.on(
+    "postgres_changes",
+    broadcastPage
+      ? { event: "INSERT", schema: "public", table: "broadcasts" }
+      : {
+          event: "INSERT",
+          schema: "public",
+          table: "inbox_messages",
+          filter: `recipient_id=eq.${session.user.id}`,
+        },
+    () => refresh(),
+  );
+  state.channel.subscribe((event) => {
+    if (!state.session) return;
+    if (event === "SUBSCRIBED") {
+      connection("Live updates", true);
+      refresh();
+    } else if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(event))
+      connection("Automatic sync · every 5s");
+  });
   connection("Automatic sync · every 5s");
 }
 $("login-form").addEventListener("submit", async (event) => {
@@ -306,11 +360,7 @@ $("login-form").addEventListener("submit", async (event) => {
         "Could not save your username. Check that the database migration has been run.",
       );
     await startSession(session);
-    status(
-      meterPage
-        ? "Identity established. Select any two people to inspect their scorecard."
-        : "Identity established. Pick someone to misunderstand.",
-    );
+    status(`Identity established. ${page.welcome}`);
   } catch (error) {
     status(error.message, true);
   } finally {
@@ -322,6 +372,7 @@ async function requestChallenge() {
   const current = ++challengeRequest;
   state.challenge = null;
   state.pending = null;
+  $("delivery-link").hidden = true;
   $("puzzle").classList.remove("encoded-puzzle");
   updateComposer();
   if (!state.recipient) {
@@ -392,6 +443,7 @@ $("send-form").addEventListener("submit", async (event) => {
     status(
       `Delivered poorly.${result.engine === "fallback" ? " The deterministic misinterpreter handled this transmission." : ""}`,
     );
+    $("delivery-link").hidden = false;
     await refresh();
   } catch (error) {
     status(
@@ -425,6 +477,7 @@ if (client) {
       client.realtime.setAuth(session.access_token);
     }
     if (event === "SIGNED_OUT") {
+      $("delivery-link").hidden = true;
       meter.reset();
       state.session = null;
       state.profiles = [];

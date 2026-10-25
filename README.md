@@ -49,13 +49,15 @@ In Codex cloud, enter the public variables and server secret in **environment se
 
 ## 2. Confirm the fallback flow first
 
+The app has dedicated **Message** (`/message`), **Public broadcast** (`/broadcast`), and **Your inbox** (`/inbox`) pages, plus **Miscommunication Meter** (`/miscommunication-meter`). The root URL remains an alias for Message. Use the sidebar on desktop or the page tabs on mobile; your anonymous session carries across pages. Each page has a large title and loads only its relevant feed. Broadcast and Inbox keep live updates with a five-second polling fallback. Message shows a link to the public headline after a successful send.
+
 Leave Groq variables unset initially. The app then uses deterministic absurd interpretations, with no provider call.
 
-1. Open the app in **three isolated browser profiles/sessions**. Regular tabs often share an account. Use different browsers or separate profiles for Alice, Bob, and Charlie. Two incognito windows in the same browser may share storage too.
+1. Open **Message** for Alice, **Your inbox** for Bob, and **Public broadcast** for Charlie in **three isolated browser profiles/sessions**. Regular tabs often share an account. Use different browsers or separate profiles. Two incognito windows in the same browser may share storage too.
 2. Enter fictional usernames. Users appear in the selector within five seconds; usernames are labels, not unique login credentials. The short ID suffix distinguishes duplicates.
 3. Alice selects Bob. Decode the ROT13 envelope around the Chat Future puzzle, then read the puzzle to identify the outgoing cipher. Chat Future displays no decoding hint or automatic decoder.
 4. If it says **A became D**, type `KHOOR`. If it describes an alphabet mirror, type `SVOOL`. Either decodes to `HELLO`.
-5. Alice clicks **Transmit poorly**. Alice and Charlie see a sensational headline about the greeting in the broadcast. Bob sees no corresponding headline and gets a different, ROT13-encoded fun misinterpretation in his inbox. The decoded original is not written to the public broadcast for new messages.
+5. Alice clicks **Transmit poorly**. Charlie sees a sensational headline about the greeting on Public broadcast. Alice can follow **View your public headline** to see it too. Bob receives a different, ROT13-encoded fun misinterpretation on Your inbox; the headline is excluded from his Broadcast page. The decoded original is not written to the public broadcast for new messages.
 6. Incoming messages use ROT13: A↔N, B↔O. There is intentionally no automatic decrypt button.
 7. Request a new future for each new message. Challenges last ten minutes. Challenge creation and successful sends have a three-second cooldown per sender.
 

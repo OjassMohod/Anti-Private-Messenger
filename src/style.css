@@ -1237,6 +1237,147 @@ textarea::placeholder {
   font-size: 13px;
   overflow-wrap: anywhere;
 }
+.page-heading h1 {
+  font-size: clamp(48px, 5.8vw, 80px);
+  font-weight: 650;
+  line-height: 1.04;
+  letter-spacing: -3.5px;
+  margin-bottom: 20px;
+}
+.page-heading .eyebrow {
+  font-size: 11px;
+}
+.page-heading .page-description {
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 650px;
+}
+.page-heading {
+  margin-bottom: 32px;
+}
+.page-content {
+  display: block;
+}
+.page-content .panel {
+  padding: 30px;
+}
+.page-content .panel h2 {
+  font-size: 25px;
+  letter-spacing: -0.7px;
+}
+.page-content .panel-heading {
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.page-content .panel-heading > div {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.page-content .panel-description {
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+.page-content .message-list {
+  max-height: none;
+  overflow: visible;
+}
+.page-content .message {
+  padding: 22px;
+  margin-top: 15px;
+}
+.page-content .message-body {
+  font-size: 17px;
+  margin-block: 16px;
+}
+.page-content .inbox .message-body {
+  font-size: 16px;
+}
+.page-content .message-meta {
+  font-size: 13px;
+  gap: 9px;
+}
+.page-content .message-meta strong {
+  max-width: 180px;
+}
+.page-content .message-avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+}
+.page-content .message time {
+  font-size: 11px;
+}
+.page-content .message-label {
+  font-size: 9px;
+}
+.page-content .empty-state {
+  padding: 55px 20px;
+}
+.page-content .empty-state strong {
+  font-size: 17px;
+}
+.page-content .empty-state p {
+  font-size: 13px;
+  max-width: 320px;
+}
+.page-content label {
+  font-size: 11px;
+}
+.page-content .future-card {
+  padding: 23px;
+  margin-block: 28px;
+}
+.page-content .future-header {
+  font-size: 15px;
+}
+.page-content .future-card .encoded-puzzle {
+  font-size: 16px;
+  line-height: 1.9;
+}
+.page-content textarea {
+  min-height: 200px;
+  font-size: 15px;
+  padding: 18px;
+}
+.page-content select {
+  font-size: 14px;
+  height: 48px;
+}
+.page-content .select-wrap > span {
+  top: 12px;
+}
+.page-content .button {
+  font-size: 14px;
+  padding: 13px 20px;
+}
+.page-content .inbox-hint {
+  font-size: 12px;
+  padding: 13px 16px;
+}
+.page-counter {
+  display: inline-grid;
+  place-items: center;
+  min-width: 27px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  background: #edf3e7;
+  color: #7a9064;
+  font-size: 12px;
+}
+.delivery-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 22px;
+  color: #466d3c;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.page-tabs {
+  display: none;
+}
 .view-switch {
   margin-left: auto;
   padding: 6px 10px;
@@ -1421,6 +1562,9 @@ textarea::placeholder {
   max-width: none;
 }
 @media (max-width: 1150px) {
+  .page-content .panel h2 {
+    font-size: 23px;
+  }
   .meter-controls {
     flex-wrap: wrap;
   }
@@ -1431,7 +1575,88 @@ textarea::placeholder {
     flex-basis: 35%;
   }
 }
+@media (max-width: 850px) {
+  .page-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+  }
+  .page-tabs a {
+    text-align: center;
+    font-size: 12px;
+    padding: 8px 4px;
+    border-radius: 5px;
+    color: #86917c;
+  }
+  .page-tabs a[aria-current="page"] {
+    background: #edf3e6;
+    color: #3d5b31;
+    font-weight: 650;
+  }
+  .page-heading h1 {
+    font-size: clamp(43px, 7.5vw, 66px);
+    letter-spacing: -2.5px;
+  }
+  .page-heading.meter-heading h1 {
+    font-size: clamp(35px, 6.4vw, 60px);
+  }
+}
 @media (max-width: 630px) {
+  .page-content .panel {
+    padding: 20px;
+  }
+  .page-content .panel h2 {
+    font-size: 23px;
+  }
+  .page-content .panel-description {
+    font-size: 13px;
+  }
+  .page-content .panel-heading .pill {
+    font-size: 7px;
+  }
+  .page-content .message {
+    padding: 16px;
+  }
+  .page-content .message-body,
+  .page-content .inbox .message-body {
+    font-size: 14px;
+  }
+  .page-content .message-meta {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .page-content .message-meta strong {
+    max-width: 100px;
+  }
+  .page-content .message time {
+    font-size: 9px;
+  }
+  .page-content .future-card {
+    padding: 17px;
+  }
+  .page-content .future-card .encoded-puzzle {
+    font-size: 14px;
+  }
+  .page-heading h1 {
+    font-size: clamp(36px, 10.8vw, 50px);
+    letter-spacing: -1.9px;
+  }
+  .page-heading.meter-heading h1 {
+    font-size: clamp(30px, 9.7vw, 43px);
+  }
+  .page-heading .page-description {
+    font-size: 13px;
+    max-width: none;
+  }
+  .page-heading .eyebrow {
+    font-size: 9px;
+  }
+  .page-tabs {
+    padding-inline: 12px;
+  }
   .topbar {
     height: auto;
     min-height: 53px;

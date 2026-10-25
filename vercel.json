@@ -4,6 +4,12 @@
   "outputDirectory": "dist",
   "functions": { "api/*.js": { "maxDuration": 30 } },
   "rewrites": [
+    { "source": "/message", "destination": "/index.html" },
+    { "source": "/message/", "destination": "/index.html" },
+    { "source": "/broadcast", "destination": "/index.html" },
+    { "source": "/broadcast/", "destination": "/index.html" },
+    { "source": "/inbox", "destination": "/index.html" },
+    { "source": "/inbox/", "destination": "/index.html" },
     { "source": "/miscommunication-meter", "destination": "/index.html" },
     { "source": "/miscommunication-meter/", "destination": "/index.html" }
   ],

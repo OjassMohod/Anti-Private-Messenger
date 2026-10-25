@@ -128,7 +128,7 @@ async function fixture(context, id, shared, { failFirstSend = false } = {}) {
   return submissions;
 }
 
-async function login(page, username, path = "/") {
+async function login(page, username, path = "/message") {
   await page.goto(path);
   await page.getByLabel("Your username").fill(username);
   await page.getByRole("button", { name: "Enter workspace" }).click();
@@ -156,7 +156,13 @@ test("three isolated browser sessions compose and automatically synchronize", as
     const errors = [];
     pages.forEach((p) => p.on("pageerror", (e) => errors.push(e.message)));
     await Promise.all(
-      pages.map((p, i) => login(p, ["Alice", "Bob", "Charlie"][i])),
+      pages.map((p, i) =>
+        login(
+          p,
+          ["Alice", "Bob", "Charlie"][i],
+          ["/message", "/inbox", "/broadcast"][i],
+        ),
+      ),
     );
     await pages[0].locator("#recipient").selectOption(bob);
     await expect(pages[0].locator("#puzzle")).toHaveText(
@@ -183,6 +189,15 @@ test("three isolated browser sessions compose and automatically synchronize", as
     await expect(
       pages[2].locator("#broadcast-list .message-body"),
     ).not.toHaveText("HELLO");
+    await expect(pages[0].locator("#composer")).toBeVisible();
+    await expect(pages[0].locator("#broadcast-panel")).toBeHidden();
+    await expect(pages[1].locator("#inbox-panel")).toBeVisible();
+    await expect(pages[1].locator("#composer")).toBeHidden();
+    await expect(pages[2].locator("#broadcast-panel")).toBeVisible();
+    await expect(pages[2].locator("#inbox-panel")).toBeHidden();
+    await expect(
+      pages[0].getByRole("link", { name: "View your public headline" }),
+    ).toBeVisible();
     await expect(pages[0].locator("#inbox-list .message")).toHaveCount(0);
     await pages[0].screenshot({
       path: "test-results/alice-desktop.png",
@@ -408,12 +423,142 @@ test("untrusted usernames and messages render as text", async ({ browser }) => {
       inbox: [],
     });
     const page = await context.newPage();
-    await login(page, "Alice");
+    await login(page, "Alice", "/broadcast");
     await expect(page.locator("#broadcast-list .message-body")).toContainText(
       "<img src=x",
     );
     await expect(page.locator("#broadcast-list img")).toHaveCount(0);
     expect(await page.evaluate(() => window.pwned)).toBeUndefined();
+  } finally {
+    await context.close();
+  }
+});
+
+test("separate pages preserve the session and fetch only the visible feed", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 1050 },
+  });
+  try {
+    await fixture(context, alice, {
+      broadcasts: [
+        {
+          id: challenge,
+          sender_id: bob,
+          recipient_id: charlie,
+          original: headline,
+          created_at: new Date().toISOString(),
+        },
+      ],
+      inbox: [
+        {
+          id: challenge,
+          sender_id: bob,
+          recipient_id: alice,
+          ciphertext: rot13("An exclusive misunderstanding."),
+          created_at: new Date().toISOString(),
+        },
+      ],
+    });
+    const page = await context.newPage();
+    let requests = [],
+      signups = 0;
+    page.on("request", (req) => {
+      requests.push(req.url());
+      if (req.url().includes("/auth/v1/signup")) signups++;
+    });
+    await login(page, "Alice");
+    await expect(page.locator("#composer")).toBeVisible();
+    expect(
+      requests.some((url) =>
+        /\/rest\/v1\/(broadcasts|inbox_messages)/.test(url),
+      ),
+    ).toBe(false);
+    const nav = page.getByRole("navigation", { name: "Workspace" });
+    requests = [];
+    await nav.getByRole("link", { name: "Public broadcast" }).click();
+    await expect(page).toHaveURL(/\/broadcast$/);
+    await expect(page.locator("#login-panel")).toBeHidden();
+    await expect(page.locator("#broadcast-list .message-body")).toHaveText(
+      headline,
+    );
+    expect(
+      requests.some((url) => url.includes("/rest/v1/inbox_messages")),
+    ).toBe(false);
+    const broadcastH1Size = await page
+      .locator(".page-heading h1:visible")
+      .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    expect(broadcastH1Size).toBeGreaterThanOrEqual(48);
+    expect(
+      await page
+        .locator("#broadcast-panel h2")
+        .evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
+    ).toBeGreaterThanOrEqual(23);
+    await page.screenshot({
+      path: "test-results/broadcast-desktop.png",
+      fullPage: true,
+    });
+    requests = [];
+    await nav.getByRole("link", { name: "Your inbox" }).click();
+    await expect(page).toHaveURL(/\/inbox$/);
+    await expect(page.locator("#login-panel")).toBeHidden();
+    await expect(page.locator("#inbox-list .message-body")).toHaveText(
+      rot13("An exclusive misunderstanding."),
+    );
+    expect(requests.some((url) => url.includes("/rest/v1/broadcasts"))).toBe(
+      false,
+    );
+    await page.screenshot({
+      path: "test-results/inbox-desktop.png",
+      fullPage: true,
+    });
+    await nav.getByRole("link", { name: "Miscommunication Meter" }).click();
+    await expect(page.locator("#meter-page")).toBeVisible();
+    await expect(page.locator("#login-panel")).toBeHidden();
+    expect(signups).toBe(1);
+  } finally {
+    await context.close();
+  }
+});
+
+test("mobile tabs reach all pages with large headings and no horizontal overflow", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+  });
+  try {
+    await fixture(context, alice, { broadcasts: [], inbox: [] });
+    const page = await context.newPage();
+    await login(page, "Alice");
+    const tabs = page.getByRole("navigation", { name: "Pages" });
+    for (const [label, route, panel] of [
+      ["Broadcast", "/broadcast", "#broadcast-panel"],
+      ["Inbox", "/inbox", "#inbox-panel"],
+      ["Message", "/message", "#composer"],
+    ]) {
+      await tabs.getByRole("link", { name: label, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`${route}$`));
+      await expect(page.locator(panel)).toBeVisible();
+      await expect(page.locator("#login-panel")).toBeHidden();
+      expect(
+        await page
+          .locator(".page-heading h1:visible")
+          .evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
+      ).toBeGreaterThanOrEqual(36);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `test-results/${label.toLowerCase()}-page-mobile.png`,
+        fullPage: true,
+      });
+    }
+    await page.goto("/");
+    await expect(page.locator("#composer")).toBeVisible();
   } finally {
     await context.close();
   }
