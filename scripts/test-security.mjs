@@ -186,6 +186,12 @@ try {
   const sent = await api("send", alice, payload);
   assert.equal(sent.status, 200, "Send endpoint must succeed");
   assert.equal(sent.body.delivered, true);
+  if (env.REQUIRE_GROQ === "1")
+    assert.equal(
+      sent.body.engine,
+      "groq",
+      JSON.stringify(sent.body.diagnostic),
+    );
   assert.equal(sent.body.original, undefined);
   assert.equal(sent.body.ciphertext, undefined);
   const retry = await api("send", alice, payload);
@@ -222,11 +228,20 @@ try {
   const inbox = ok(
     await bob.client
       .from("inbox_messages")
-      .select("ciphertext")
+      .select("ciphertext,engine")
       .eq("id", payload.submission_id)
       .single(),
   );
   assert.notEqual(rot13(inbox.ciphertext).toUpperCase(), "HELLO");
+  assert.equal(inbox.engine, sent.body.engine);
+  if (env.REQUIRE_GROQ === "1")
+    console.log(
+      JSON.stringify({
+        headline: broadcast.original,
+        interpretation: rot13(inbox.ciphertext),
+        engine: inbox.engine,
+      }),
+    );
   const visitor = createClient(url, key, options);
   assert.ok((await visitor.from("broadcasts").select("*")).error);
   pass(

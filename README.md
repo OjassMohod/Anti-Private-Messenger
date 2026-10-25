@@ -109,6 +109,8 @@ For browser tests, run `npx playwright install chromium` if Playwright has no br
 
 The live security script creates three temporary anonymous users and profiles, sends a dummy message through the real API, verifies known-ID recipient exclusion, inbox isolation, rejected browser writes/RPC calls, Realtime delivery/exclusion, and exact retry behavior. It then removes **only its own test users**, cascading their dummy data. It can consume anonymous-auth rate limits. Run against the dedicated project. Cleanup failures identify the test user IDs to remove in **Authentication → Users**.
 
+Set `REQUIRE_GROQ=1` when running the live security script to require a real provider response instead of accepting fallback delivery. This also prints the generated headline and decoded fun version of the script's dummy greeting; no user messages or credentials are logged.
+
 ## Security model
 
 - Supabase verifies each bearer token with `auth.getUser` on the server; the body cannot choose the sender.
