@@ -4,8 +4,6 @@
   "outputDirectory": "dist",
   "functions": { "api/*.js": { "maxDuration": 30 } },
   "rewrites": [
-    { "source": "/motion-lab", "destination": "/motion-lab.html" },
-    { "source": "/motion-lab/", "destination": "/motion-lab.html" },
     { "source": "/message", "destination": "/index.html" },
     { "source": "/message/", "destination": "/index.html" },
     { "source": "/broadcast", "destination": "/index.html" },
