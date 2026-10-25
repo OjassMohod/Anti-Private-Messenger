@@ -1247,7 +1247,261 @@ textarea::placeholder {
   font-size: 13px;
   overflow-wrap: anywhere;
 }
+.view-switch {
+  margin-left: auto;
+  padding: 6px 10px;
+  border: 1px solid #dce5d5;
+  border-radius: 5px;
+  color: #587747;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.view-switch:hover {
+  background: #edf3e6;
+}
+.meter-heading {
+  margin-bottom: 24px;
+}
+.meter-heading .protocol-stamp > span {
+  font-size: 35px;
+  letter-spacing: -3px;
+}
+.meter-disclaimer {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 24px;
+}
+.meter-disclaimer .pill {
+  font-size: 8px;
+  flex-shrink: 0;
+}
+.meter-disclaimer p {
+  font-size: 12px;
+  color: #8a947f;
+  margin: 0;
+}
+.meter-controls {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.meter-person {
+  flex: 1;
+  min-width: 0;
+}
+.meter-person select {
+  padding-inline: 12px;
+  appearance: auto;
+}
+.meter-swap {
+  border: 0;
+  background: transparent;
+  color: #8b9a7b;
+  font-size: 10px;
+  padding: 13px 0;
+  white-space: nowrap;
+}
+.meter-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 29px 0 18px;
+}
+.meter-summary h2 {
+  font-size: 17px;
+  font-weight: 550;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.meter-summary > span {
+  color: #8c9880;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.meter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.meter-card {
+  min-height: 260px;
+  padding: 27px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.meter-card .tiny-label {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+}
+.meter-card .meter-value {
+  font-size: clamp(36px, 4.2vw, 64px);
+  font-weight: 550;
+  line-height: 1.15;
+  letter-spacing: -2.4px;
+  color: #365b38;
+  margin: 26px 0 12px;
+  overflow-wrap: anywhere;
+}
+.meter-card .meter-tone-value {
+  font-size: clamp(25px, 3vw, 39px);
+  letter-spacing: -1.3px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+}
+.meter-card .meter-money-value {
+  font-size: clamp(31px, 3.5vw, 51px);
+}
+.meter-card h3 {
+  font-size: 13px;
+  font-weight: 550;
+  margin: 0 0 7px;
+}
+.meter-card > p:not(.meter-value) {
+  font-size: 12px;
+  color: #8f9985;
+  margin-bottom: 18px;
+}
+.meter-footnote {
+  border-top: 1px solid #e6eadf;
+  margin-top: auto;
+  padding-top: 14px;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #9aa58e;
+}
+.meter-card.understanding {
+  background: #f0f4e7;
+  border-color: #dce6cb;
+}
+.meter-card.tone {
+  background: #f7f3fb;
+  border-color: #e8deef;
+}
+.meter-card.tone .meter-value {
+  color: #8a719b;
+}
+.meter-card.damage {
+  background: #fbf6f0;
+  border-color: #ecdfcf;
+}
+.meter-card.damage .meter-value {
+  color: #ad865d;
+}
+.meter-card.financial {
+  background: #f1f5f4;
+  border-color: #dbe5df;
+}
+.meter-card.financial .meter-value {
+  color: #5d8374;
+}
+.meter-track {
+  height: 7px;
+  border-radius: 10px;
+  background: #eee4d6;
+  overflow: hidden;
+  margin: 11px 0 14px;
+}
+.meter-track > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 10px;
+  background: #c39c6c;
+  transition: width 0.3s;
+}
+.meter-bottom-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 10px;
+  color: #a0a890;
+  margin-top: 22px;
+}
+.meter-empty {
+  margin-bottom: 20px;
+}
+.meter-empty p {
+  max-width: none;
+}
+@media (max-width: 1150px) {
+  .meter-controls {
+    flex-wrap: wrap;
+  }
+  .meter-controls .button {
+    width: 100%;
+  }
+  .meter-controls .meter-person {
+    flex-basis: 35%;
+  }
+}
+@media (max-width: 630px) {
+  .topbar {
+    height: auto;
+    min-height: 53px;
+    flex-wrap: wrap;
+    padding-block: 11px;
+  }
+  .view-switch {
+    font-size: 10px;
+  }
+  .topbar .connection {
+    width: 100%;
+    justify-content: end;
+  }
+  .meter-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .meter-card {
+    min-height: 240px;
+    padding: 23px;
+  }
+  .meter-card .meter-value {
+    font-size: 51px;
+  }
+  .meter-card .meter-tone-value {
+    font-size: 32px;
+  }
+  .meter-card .meter-money-value {
+    font-size: 42px;
+  }
+  .meter-disclaimer {
+    align-items: start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .meter-disclaimer .pill {
+    display: inline-block;
+  }
+  .meter-summary {
+    flex-wrap: wrap;
+  }
+  .meter-bottom-note {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .meter-controls {
+    gap: 12px;
+    padding: 16px;
+  }
+  .meter-person label {
+    font-size: 9px;
+  }
+  .meter-swap {
+    font-size: 9px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .meter-track > span {
+    transition: none;
+  }
   * {
     scroll-behavior: auto !important;
   }

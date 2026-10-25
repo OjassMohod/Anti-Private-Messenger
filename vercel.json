@@ -3,6 +3,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": { "api/*.js": { "maxDuration": 30 } },
+  "rewrites": [
+    { "source": "/miscommunication-meter", "destination": "/index.html" },
+    { "source": "/miscommunication-meter/", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

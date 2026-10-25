@@ -89,6 +89,21 @@ try {
   }
   const [alice, bob, charlie] = users;
   pass("three real anonymous users and own profiles");
+  stage = "checking public meter authentication and empty conversations";
+  const meterPair = { user_a: alice.id, user_b: bob.id };
+  assert.equal((await api("meter", charlie, meterPair, false)).status, 401);
+  assert.equal(
+    (await api("meter", charlie, { user_a: alice.id, user_b: alice.id }))
+      .status,
+    400,
+  );
+  const emptyMeter = await api("meter", charlie, meterPair);
+  assert.equal(emptyMeter.status, 200);
+  assert.equal(emptyMeter.body.message_count, 0);
+  assert.equal(emptyMeter.body.metrics, null);
+  pass(
+    "meter requires login and returns a genuine empty state for an unrelated viewer",
+  );
   stage = "checking client write restrictions";
   assert.ok(
     (
@@ -246,6 +261,44 @@ try {
   assert.ok((await visitor.from("broadcasts").select("*")).error);
   pass(
     "Alice/Charlie see headline instead of original; Bob excluded even by ID; only Bob reads inbox; anonymous visitor denied",
+  );
+
+  stage = "verifying public meter scores without private message disclosure";
+  const meters = await Promise.all([
+    api("meter", alice, meterPair),
+    api("meter", bob, { user_a: bob.id, user_b: alice.id }),
+    api("meter", charlie, meterPair),
+  ]);
+  for (const meter of meters) {
+    assert.equal(meter.status, 200);
+    assert.equal(meter.body.fictional, true);
+    assert.equal(meter.body.message_count, 1);
+    assert.ok(meter.body.metrics.understanding_percent < 0);
+    assert.ok(
+      meter.body.metrics.friendship_damage_percent >= 0 &&
+        meter.body.metrics.friendship_damage_percent <= 100,
+    );
+    assert.ok(meter.body.metrics.financial_risk_credits > 0);
+    assert.deepEqual(Object.keys(meter.body).sort(), [
+      "fictional",
+      "message_count",
+      "metrics",
+      "pair",
+    ]);
+    const output = JSON.stringify(meter.body);
+    for (const secretContent of [
+      broadcast.original,
+      inbox.ciphertext,
+      rot13(inbox.ciphertext),
+    ])
+      assert.ok(
+        !output.includes(secretContent),
+        "Scorecard leaked message contents",
+      );
+    assert.deepEqual(meter.body, meters[0].body);
+  }
+  pass(
+    "all three users, including an observer and recipient, see identical public scores with no message contents",
   );
 
   stage = "verifying actual Realtime delivery and exclusion";

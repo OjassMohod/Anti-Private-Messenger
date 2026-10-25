@@ -63,6 +63,16 @@ Realtime triggers authorized database refreshes. A five-second polling fallback 
 
 Signing out abandons an anonymous identity; there is no password recovery. Reloading while signed in retains the same account.
 
+## Miscommunication Meter
+
+Open **Miscommunication Meter** in the sidebar or **Open the meter** in the top bar. Its direct URL is `/miscommunication-meter`. The same anonymous account works across both pages. Select any two registered people, including pairs you are not part of.
+
+The page displays fictional negative understanding %, a tone category (Goofy mood, Existential crisis, or Cartoon villain), friendship damage out of 100, and financial risk in imaginary credits. It counts messages in both directions. Scores are deterministic for the unordered pair and message count: swapping people or reloading preserves them; new transmissions lower understanding and increase imaginary financial risk. Friendship damage caps at 100. No messages produces an empty state rather than invented results.
+
+Every signed-in user can access a scorecard. `/api/meter` verifies the bearer token and reads only the selected profile labels and an exact message count through the server-only Supabase client. It never queries message text, inbox ciphertext, or challenge data. Existing message RLS is unchanged. The meter page does not fetch broadcast or inbox contents. Scores refresh automatically every ten seconds and can also be refreshed manually. They are satire, not AI sentiment analysis or actual relationship/financial assessments.
+
+No new SQL, storage, credentials, or Groq calls are required. The dedicated route is rewritten to the shared frontend by Vercel; local Vite development supports it too. API and browser tests cover public access, pair ordering, bidirectional history, score changes, empty states, failures, and mobile layout. The live security script checks that all three independent users get the same scorecard without obtaining private message content.
+
 ## 3. Optional Groq setup
 
 1. In Groq's console, use an available free account and create an API key. Do not select a paid plan or accept a credit-card requirement.

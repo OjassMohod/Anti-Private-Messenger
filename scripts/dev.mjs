@@ -5,6 +5,7 @@ Object.assign(process.env, loadEnv("development", process.cwd(), ""));
 const routes = {
   "/api/challenge": (await import("../api/challenge.js")).default,
   "/api/send": (await import("../api/send.js")).default,
+  "/api/meter": (await import("../api/meter.js")).default,
 };
 const server = await createServer({
   server: {

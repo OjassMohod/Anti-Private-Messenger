@@ -1,5 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import { createMeter } from "./meter.js";
 import "./style.css";
+
+const meterPage =
+  location.pathname.replace(/\/$/, "") === "/miscommunication-meter";
+if (meterPage) document.title = "Miscommunication Meter — Anti-Private";
 
 let client;
 try {
@@ -37,18 +42,19 @@ document.querySelector("#app").innerHTML = `
     <a class="brand" href="/" aria-label="Anti-Private home"><span class="brand-mark">a${arrow}</span><span>anti-private<span class="brand-sub">MESSENGER / BETA</span></span></a>
     <p class="workspace-label">YOUR WORKSPACE <span>01</span></p>
     <nav aria-label="Workspace">
-      <a class="nav-item active" href="#composer"><span>${arrow}</span> Miscommunications <span class="nav-dot"></span></a>
-      <a class="nav-item" href="#broadcast-panel"><span>◎</span> Public broadcast <span id="broadcast-count" class="nav-count">0</span></a>
-      <a class="nav-item" href="#inbox-panel"><span>▤</span> Your inbox <span id="inbox-count" class="nav-count">0</span></a>
+      <a class="nav-item ${meterPage ? "" : "active"}" href="/#composer"><span>${arrow}</span> Miscommunications ${meterPage ? "" : '<span class="nav-dot"></span>'}</a>
+      <a class="nav-item" href="/#broadcast-panel"><span>◎</span> Public broadcast <span id="broadcast-count" class="nav-count">0</span></a>
+      <a class="nav-item" href="/#inbox-panel"><span>▤</span> Your inbox <span id="inbox-count" class="nav-count">0</span></a>
+      <a class="nav-item ${meterPage ? "active" : ""}" href="/miscommunication-meter"><span>◉</span> Miscommunication Meter ${meterPage ? '<span class="nav-dot"></span>' : ""}</a>
     </nav>
     <div class="sidebar-note"><span class="tiny-label">OUR COMMITMENT</span><p>Your message.<br>Everyone else's business.</p><span class="note-arrow">${arrow}</span></div>
     <div class="account"><span class="avatar" id="account-avatar">?</span><div><strong id="account-name">Unidentified person</strong><span id="account-detail">Awaiting a bad decision</span></div><button id="logout" class="icon-button" title="Sign out" aria-label="Sign out" hidden>↪</button></div>
   </aside>
   <div class="workspace">
-    <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong>Miscommunications</strong></span><span class="connection" id="connection"><i></i> Connection pending</span></header>
+    <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong>${meterPage ? "Miscommunication Meter" : "Miscommunications"}</strong></span><a class="view-switch" href="${meterPage ? "/" : "/miscommunication-meter"}">${meterPage ? "Back to messenger" : "Open the meter"}</a><span class="connection" id="connection"><i></i> Connection pending</span></header>
     <main>
-      <div class="page-heading"><div><p class="eyebrow">COMMUNICATION, RECONSIDERED.</p><h1>Get the wrong<br>message across<span class="accent">.</span></h1><p class="page-description">A little effort. A lot of misunderstanding. Absolutely no privacy.</p></div><div class="protocol-stamp"><span>${arrow}${arrow}</span><small>END-TO-END<br>MISCOMMUNICATION</small></div></div>
-      <div class="notice"><span class="notice-symbol">!</span><p><strong>A public service disannouncement.</strong> Your message becomes a sensational headline for everyone except its recipient. They receive an encoded misinterpretation instead. Use fictional names and dummy messages.</p><span class="notice-tag">BY DESIGN</span></div>
+      <div class="page-heading" ${meterPage ? "hidden" : ""}><div><p class="eyebrow">COMMUNICATION, RECONSIDERED.</p><h1>Get the wrong<br>message across<span class="accent">.</span></h1><p class="page-description">A little effort. A lot of misunderstanding. Absolutely no privacy.</p></div><div class="protocol-stamp"><span>${arrow}${arrow}</span><small>END-TO-END<br>MISCOMMUNICATION</small></div></div>
+      <div class="notice" ${meterPage ? "hidden" : ""}><span class="notice-symbol">!</span><p><strong>A public service disannouncement.</strong> Your message becomes a sensational headline for everyone except its recipient. They receive an encoded misinterpretation instead. Use fictional names and dummy messages.</p><span class="notice-tag">BY DESIGN</span></div>
       <section id="setup" class="setup-card" ${client ? "hidden" : ""}>
         <span class="tiny-label">ONE-TIME CONNECTION SETUP</span><h2>The infrastructure is ready for its credentials.</h2><p>Connect a Supabase Free project to begin. No messages are being sent yet.</p><ol><li>Enable anonymous sign-in and run <code>supabase/migrations/001_initial.sql</code>.</li><li>Set the two public <code>VITE_SUPABASE_…</code> variables and the two server-only Supabase variables.</li><li>Restart locally, or redeploy on Vercel. See <code>README.md</code> for the exact steps.</li></ol><p class="muted">Groq is optional. The deterministic misinterpreter works without an API key.</p>
       </section>
@@ -57,7 +63,8 @@ document.querySelector("#app").innerHTML = `
         <form id="login-form"><label for="username">Your username</label><div class="input-row"><input id="username" name="username" placeholder="e.g. Alice" minlength="2" maxlength="24" required autocomplete="nickname"><button class="button primary" id="login-button">Enter workspace <span>${arrow}</span></button></div></form>
       </section>
       <p id="status" class="status" role="status" aria-live="polite"></p>
-      <div class="content-grid">
+      <section id="meter-page" ${meterPage ? "" : "hidden"}></section>
+      <div class="content-grid" ${meterPage ? "hidden" : ""}>
         <section id="composer" class="panel composer"><div class="panel-heading"><div><span class="section-number">01</span><h2>Compose a misunderstanding</h2></div><span class="pill">OUTGOING</span></div>
           <form id="send-form">
             <label for="recipient">WHO SHOULD MISS THE POINT?</label><div class="select-wrap"><select id="recipient" disabled><option value="">Sign in to choose a recipient</option></select><span>⌄</span></div>
@@ -75,6 +82,7 @@ document.querySelector("#app").innerHTML = `
   </div>`;
 
 const $ = (id) => document.getElementById(id);
+const meter = createMeter($("meter-page"), api);
 function status(message = "", error = false) {
   $("status").textContent = message;
   $("status").classList.toggle("error", error);
@@ -172,16 +180,20 @@ async function refresh() {
         .select("id,username")
         .order("created_at", { ascending: true })
         .limit(100),
-      client
-        .from("broadcasts")
-        .select("id,sender_id,recipient_id,original,created_at")
-        .order("created_at", { ascending: false })
-        .limit(50),
-      client
-        .from("inbox_messages")
-        .select("id,sender_id,recipient_id,ciphertext,created_at")
-        .order("created_at", { ascending: false })
-        .limit(50),
+      meterPage
+        ? Promise.resolve({ data: [], error: null })
+        : client
+            .from("broadcasts")
+            .select("id,sender_id,recipient_id,original,created_at")
+            .order("created_at", { ascending: false })
+            .limit(50),
+      meterPage
+        ? Promise.resolve({ data: [], error: null })
+        : client
+            .from("inbox_messages")
+            .select("id,sender_id,recipient_id,ciphertext,created_at")
+            .order("created_at", { ascending: false })
+            .limit(50),
     ]);
     if (state.session?.user.id !== userId) return;
     if (profiles.error || broadcasts.error || inbox.error)
@@ -193,6 +205,10 @@ async function refresh() {
     state.inbox = inbox.data;
     renderRecipients();
     renderMessages();
+    if (meterPage) {
+      meter.updateUsers(state.profiles, userId);
+      await meter.refresh();
+    }
     if (!state.profiles.some((p) => p.id === userId))
       $("login-panel").hidden = false;
   } catch (error) {
@@ -217,6 +233,10 @@ async function startSession(session) {
   $("account-detail").textContent =
     `Anonymous · ${session.user.id.slice(0, 6)}`;
   $("logout").hidden = false;
+  if (meterPage) {
+    connection("Auto refresh · 10s", true);
+    return;
+  }
   if (state.channel) await client.removeChannel(state.channel);
   state.channel = client
     .channel(`workspace-${session.user.id}`, {
@@ -286,7 +306,11 @@ $("login-form").addEventListener("submit", async (event) => {
         "Could not save your username. Check that the database migration has been run.",
       );
     await startSession(session);
-    status("Identity established. Pick someone to misunderstand.");
+    status(
+      meterPage
+        ? "Identity established. Select any two people to inspect their scorecard."
+        : "Identity established. Pick someone to misunderstand.",
+    );
   } catch (error) {
     status(error.message, true);
   } finally {
@@ -405,6 +429,7 @@ if (client) {
       client.realtime.setAuth(session.access_token);
     }
     if (event === "SIGNED_OUT") {
+      meter.reset();
       state.session = null;
       state.profiles = [];
       state.broadcasts = [];
