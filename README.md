@@ -65,6 +65,14 @@ Realtime triggers authorized database refreshes. A five-second polling fallback 
 
 Signing out abandons an anonymous identity; there is no password recovery. Reloading while signed in retains the same account.
 
+## Motion Lab experiment
+
+Open `/motion-lab` for a standalone motion-defined text prototype. It uses its own HTML, JavaScript, and CSS entry, with no Supabase, Groq, auth, database, or message API calls. It is not integrated into Chat Future and is not linked into the production messenger navigation. Existing pages and behavior remain unchanged.
+
+Watch the dots, freeze the frame, save a PNG, and test on a phone. The same dot color, radius, and one-dot-per-cell density are used everywhere; the text mask changes motion direction only. The lab offers speed/spacing controls and two short encoded demo dispatches. A readable mode intentionally bypasses the effect for testing/accessibility. Reduced-motion preferences start it paused. Source text and motion data remain inspectable in this browser; this is visual friction, not copy protection. Human readability and resistance to screenshot interpretation require evaluation before any integration.
+
+The lab is a separate build entry in `vite.config.js`, with `/motion-lab` rewrites in `vercel.json`. To discard the experiment later, remove `motion-lab.html`, `src/motion-lab.js`, `src/motion-lab.css`, `src/motion-field.js`, their tests, the lab rewrite entries, and `vite.config.js` (which exists only for the lab); the messenger's original single-entry build then resumes. No database cleanup is involved.
+
 ## Miscommunication Meter
 
 Open **Miscommunication Meter** in the sidebar or **Open the meter** in the top bar. Its direct URL is `/miscommunication-meter`. The same anonymous account works across both pages. Select any two registered people, including pairs you are not part of.
