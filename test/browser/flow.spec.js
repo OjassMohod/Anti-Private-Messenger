@@ -69,7 +69,6 @@ async function fixture(context, id, shared, { failFirstSend = false } = {}) {
         id: challenge,
         text: rot13("A became D. Three places ahead."),
         encoding: "rot13",
-        hint: "Envelope: ROT13. A ↔ N, B ↔ O. Decode this dispatch to discover your outgoing cipher.",
         label: "Dispatch from tomorrow / 03",
         expires_at: new Date(Date.now() + 600000).toISOString(),
       }),
@@ -164,7 +163,7 @@ test("three isolated browser sessions compose and automatically synchronize", as
       rot13("A became D. Three places ahead."),
     );
     await expect(pages[0].locator("#puzzle")).not.toContainText("Three places");
-    await expect(pages[0].locator("#puzzle-hint")).toContainText("ROT13");
+    await expect(pages[0].locator("#puzzle-hint")).toHaveCount(0);
     await pages[0].locator("#ciphertext").fill("KHOOR");
     await pages[0].getByRole("button", { name: "Transmit poorly" }).click();
     await expect(pages[0].getByRole("status")).toContainText(

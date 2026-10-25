@@ -182,7 +182,7 @@ try {
   });
   assert.equal(issued.status, 200, "Challenge endpoint must succeed");
   assert.equal(issued.body.encoding, "rot13");
-  assert.match(issued.body.hint, /ROT13/);
+  assert.equal(issued.body.hint, undefined);
   assert.notEqual(rot13(issued.body.text), issued.body.text);
   const payload = {
     challenge_id: issued.body.id,

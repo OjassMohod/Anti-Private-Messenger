@@ -68,7 +68,7 @@ document.querySelector("#app").innerHTML = `
         <section id="composer" class="panel composer"><div class="panel-heading"><div><span class="section-number">01</span><h2>Compose a misunderstanding</h2></div><span class="pill">OUTGOING</span></div>
           <form id="send-form">
             <label for="recipient">WHO SHOULD MISS THE POINT?</label><div class="select-wrap"><select id="recipient" disabled><option value="">Sign in to choose a recipient</option></select><span>⌄</span></div>
-            <div class="future-card"><div class="future-header"><span class="future-icon">✳</span><span>Chat Future</span><span class="tiny-label">INCOMING FROM TOMORROW</span></div><p id="puzzle">Select a recipient. The future has an unnecessarily cryptic instruction for your next message.</p><p id="puzzle-hint" class="puzzle-hint" hidden></p><div class="future-footer"><span id="challenge-label">NO FUTURE ASSIGNED</span><button id="new-challenge" type="button" disabled>Request another ↻</button></div></div>
+            <div class="future-card"><div class="future-header"><span class="future-icon">✳</span><span>Chat Future</span><span class="tiny-label">INCOMING FROM TOMORROW</span></div><p id="puzzle">Select a recipient. The future has an unnecessarily cryptic instruction for your next message.</p><div class="future-footer"><span id="challenge-label">NO FUTURE ASSIGNED</span><button id="new-challenge" type="button" disabled>Request another ↻</button></div></div>
             <div class="field-heading"><label for="ciphertext">YOUR MANUALLY ENCODED MESSAGE</label><span id="char-count">0 / 280</span></div><textarea id="ciphertext" placeholder="Do the work yourself. Enter your ciphertext here…" maxlength="280" rows="5" required disabled></textarea>
             <p class="field-note">We decode it. Everyone else gets the headline. Your recipient gets a different misunderstanding.</p>
             <div class="send-footer"><span>⌁ &nbsp; Insecurity is the protocol.</span><button class="button primary" id="send-button" disabled>Transmit poorly <span>${arrow}</span></button></div>
@@ -322,7 +322,6 @@ async function requestChallenge() {
   const current = ++challengeRequest;
   state.challenge = null;
   state.pending = null;
-  $("puzzle-hint").hidden = true;
   $("puzzle").classList.remove("encoded-puzzle");
   updateComposer();
   if (!state.recipient) {
@@ -338,8 +337,6 @@ async function requestChallenge() {
     state.challenge = result;
     $("puzzle").textContent = result.text;
     $("puzzle").classList.add("encoded-puzzle");
-    $("puzzle-hint").textContent = result.hint;
-    $("puzzle-hint").hidden = false;
     $("challenge-label").textContent =
       `${result.label} · EXPIRES ${time(result.expires_at)}`;
   } catch (error) {
@@ -391,7 +388,6 @@ $("send-form").addEventListener("submit", async (event) => {
     $("puzzle").textContent =
       "A misunderstanding has been delivered. Request a new future for your next message.";
     $("puzzle").classList.remove("encoded-puzzle");
-    $("puzzle-hint").hidden = true;
     $("challenge-label").textContent = "FUTURE SUCCESSFULLY WASTED";
     status(
       `Delivered poorly.${result.engine === "fallback" ? " The deterministic misinterpreter handled this transmission." : ""}`,

@@ -53,7 +53,7 @@ Leave Groq variables unset initially. The app then uses deterministic absurd int
 
 1. Open the app in **three isolated browser profiles/sessions**. Regular tabs often share an account. Use different browsers or separate profiles for Alice, Bob, and Charlie. Two incognito windows in the same browser may share storage too.
 2. Enter fictional usernames. Users appear in the selector within five seconds; usernames are labels, not unique login credentials. The short ID suffix distinguishes duplicates.
-3. Alice selects Bob. Decode the ROT13 envelope around the Chat Future puzzle using its short hint (A↔N, B↔O), then read the puzzle to identify the outgoing cipher. There is intentionally no automatic decoder.
+3. Alice selects Bob. Decode the ROT13 envelope around the Chat Future puzzle, then read the puzzle to identify the outgoing cipher. Chat Future displays no decoding hint or automatic decoder.
 4. If it says **A became D**, type `KHOOR`. If it describes an alphabet mirror, type `SVOOL`. Either decodes to `HELLO`.
 5. Alice clicks **Transmit poorly**. Alice and Charlie see a sensational headline about the greeting in the broadcast. Bob sees no corresponding headline and gets a different, ROT13-encoded fun misinterpretation in his inbox. The decoded original is not written to the public broadcast for new messages.
 6. Incoming messages use ROT13: A↔N, B↔O. There is intentionally no automatic decrypt button.

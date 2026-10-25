@@ -215,7 +215,7 @@ test("challenge fixes sender and cipher server-side and never exposes database r
   assert.equal(params.p_sender_id, alice);
   assert.ok(["caesar", "atbash"].includes(params.p_cipher));
   assert.equal(res.body.encoding, "rot13");
-  assert.match(res.body.hint, /ROT13/);
+  assert.equal(res.body.hint, undefined);
   assert.equal(rot13(res.body.text), puzzles[params.p_cipher].text);
   assert.notEqual(res.body.text, puzzles[params.p_cipher].text);
   assert.equal(

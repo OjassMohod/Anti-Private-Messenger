@@ -22,7 +22,6 @@ export function createChallengeHandler(deps = {}) {
       label: puzzles[cipher].label,
       text: rot13(puzzles[cipher].text),
       encoding: "rot13",
-      hint: "Envelope: ROT13. A ↔ N, B ↔ O. Decode this dispatch to discover your outgoing cipher.",
     };
   });
 }
