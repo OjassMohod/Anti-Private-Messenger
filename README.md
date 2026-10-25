@@ -73,7 +73,11 @@ Before sharing your screen, expand **Prepare demo images** and add one image to 
 
 The assignments are: (1) recipient kissing image / broadcast reversed evolution; (2) recipient smoking cat / broadcast gun meme; (3) recipient cat face / broadcast explosion cat; (4) recipient pouring-drink cat / broadcast man in a funny pose. The last two are deliberately distinct.
 
-For the pitch: click **Start scripted demo** to enter as Afaan. **Next cue** loads Caesar +3 ciphertext, transmits it, reveals the recipient's ROT13 meaning, shows the prepared public headline, and switches sender for the next scene. There are four scenes. Use the visible Sender/Recipient/Broadcast tabs for extra perspective changes. The broadcast viewer selector illustrates recipient exclusion; the replay's filtering is presenter logic, not a substitute for the live app's server policies. Right/left arrow keys advance/rewind when not typing. Reset returns to demo sign-in while preserving images.
+For the pitch: click **Start scripted demo** to show the supplied ghost-font concept video first. It is labeled as a proposed visual treatment. The silent clip has play/pause, seek and fullscreen controls and loops until you continue; reduced-motion preferences keep it paused initially. Click **Continue with readable text** to enter the Afaan/Ojass conversation with ordinary typography. The old Motion Lab is not restored.
+
+Then **Next cue** loads Caesar +3 ciphertext, transmits it, reveals the recipient's ROT13 meaning, shows the prepared public headline, and switches sender for the next scene. There are four scenes. Use the visible Sender/Recipient/Broadcast tabs for extra perspective changes. The broadcast viewer selector illustrates recipient exclusion; the replay's filtering is presenter logic, not a substitute for the live app's server policies. Right/left arrow keys advance/rewind when not typing. Reset returns to demo sign-in while preserving images. Previous cue can return to the opening video.
+
+The uploaded VP8 WebM is bundled at `public/pitch-media/ghost-font.webm`. It was remuxed without re-encoding to add duration/seek metadata; the visual frames were preserved. The replay requests it only when the opening cue is shown. No external video service is required.
 
 Share this one window or the entire display. Use the live messenger separately for a real AI transmission if desired. The replay has its own HTML/JS/CSS build entry and no database setup or credentials. No audio is included.
 

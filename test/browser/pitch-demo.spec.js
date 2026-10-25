@@ -34,6 +34,104 @@ async function addImages(page, assets = demoAssets) {
     );
   }
 }
+async function startConversation(page) {
+  await page.getByRole("button", { name: "Start scripted demo" }).click();
+  await expect(page.locator("#ghost-font-preview")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Continue with readable text" })
+    .click();
+}
+
+test("the opening concept video plays, seeks and pauses when continuing into the conversation", async ({
+  page,
+}) => {
+  const videoRequests = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/pitch-media/"))
+      videoRequests.push(request.url());
+  });
+  await page.goto("/pitch-demo");
+  expect(videoRequests).toEqual([]);
+  await page.getByRole("button", { name: "Start scripted demo" }).click();
+  const video = page.locator("#ghost-font-preview");
+  await expect(video).toBeVisible();
+  await expect(page.locator("#demo-stage")).toContainText(
+    "For this pitch, we'll use normal text",
+  );
+  await expect(page.locator("#perspectives")).toBeHidden();
+  await expect
+    .poll(() => video.evaluate((el) => el.readyState))
+    .toBeGreaterThanOrEqual(2);
+  const metadata = await video.evaluate((el) => ({
+    duration: el.duration,
+    width: el.videoWidth,
+    height: el.videoHeight,
+    muted: el.muted,
+    controls: el.controls,
+    loop: el.loop,
+    inline: el.playsInline,
+  }));
+  expect(metadata).toMatchObject({
+    width: 1280,
+    height: 720,
+    muted: true,
+    controls: true,
+    loop: true,
+    inline: true,
+  });
+  expect(metadata.duration).toBeGreaterThan(6);
+  expect(metadata.duration).toBeLessThan(7);
+  await expect
+    .poll(() => video.evaluate((el) => el.currentTime))
+    .toBeGreaterThan(0.1);
+  await video.evaluate((el) => {
+    el.pause();
+    el.currentTime = 2;
+  });
+  await expect.poll(() => video.evaluate((el) => el.seeking)).toBe(false);
+  expect(await video.evaluate((el) => el.currentTime)).toBeCloseTo(2, 1);
+  await video.evaluate((el) => el.focus());
+  await page.keyboard.press("ArrowRight");
+  await expect(video).toBeVisible();
+  await page.screenshot({
+    path: "test-results/pitch-ghost-font.png",
+    fullPage: true,
+  });
+  await video.evaluate((el) => el.play());
+  const previousVideo = await video.elementHandle();
+  await page
+    .getByRole("button", { name: "Continue with readable text" })
+    .click();
+  expect(await previousVideo.evaluate((el) => el.paused)).toBe(true);
+  await expect(video).toHaveCount(0);
+  await expect(page.locator("#demo-stage h2")).toHaveText("Afaan sends.");
+  await page.locator("#previous-cue").click();
+  await expect(video).toBeVisible();
+  await page.locator("#reset-demo").click();
+  await expect(video).toHaveCount(0);
+  await page.getByRole("button", { name: "Start scripted demo" }).click();
+  await expect(video).toBeVisible();
+  expect(videoRequests.length).toBeGreaterThan(0);
+});
+
+test("reduced-motion users can play the concept manually or continue without playback", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/pitch-demo");
+  await page.getByRole("button", { name: "Start scripted demo" }).click();
+  const video = page.locator("#ghost-font-preview");
+  await expect(video).toBeVisible();
+  await expect
+    .poll(() => video.evaluate((el) => el.readyState))
+    .toBeGreaterThanOrEqual(1);
+  expect(await video.evaluate((el) => el.paused)).toBe(true);
+  expect(await video.evaluate((el) => el.currentTime)).toBe(0);
+  await page
+    .getByRole("button", { name: "Continue with readable text" })
+    .click();
+  await expect(page.locator("#demo-stage h2")).toHaveText("Afaan sends.");
+});
 
 test("all four scripted scenes preserve the text, images and presentation perspectives without live service calls", async ({
   page,
@@ -47,7 +145,7 @@ test("all four scripted scenes preserve the text, images and presentation perspe
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/pitch-demo");
   await addImages(page);
-  await page.getByRole("button", { name: "Start scripted demo" }).click();
+  await startConversation(page);
   for (const [index, turn] of pitchTurns.entries()) {
     await expect(page.locator("#demo-stage h2")).toHaveText(
       `${turn.sender} sends.`,
@@ -133,7 +231,7 @@ test("keyboard cue control works, typing does not advance the demo, and incorrec
   page,
 }) => {
   await page.goto("/pitch-demo");
-  await page.getByRole("button", { name: "Start scripted demo" }).click();
+  await startConversation(page);
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("#demo-ciphertext")).toHaveValue("khb");
   await page.locator("#demo-ciphertext").fill("wrong");
@@ -177,7 +275,7 @@ test("image validation rejects non-images and the demo fits a phone", async ({
     });
     await expect(page.locator("#asset-status")).toContainText("Choose a PNG");
     await expect(page.locator("#asset-count")).toHaveText("0 / 8 ready");
-    await page.getByRole("button", { name: "Start scripted demo" }).click();
+    await startConversation(page);
     await page.locator("#next-cue").click();
     await page.locator("#next-cue").click();
     await page.locator("#next-cue").click();

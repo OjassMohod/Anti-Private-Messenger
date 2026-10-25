@@ -23,6 +23,7 @@ const escape = (value = "") =>
   );
 const initialState = () => ({
   started: false,
+  intro: true,
   turn: 0,
   delivered: 0,
   view: "compose",
@@ -98,7 +99,9 @@ function start() {
   remember();
   state.started = true;
   $("asset-setup").open = false;
-  status("Scripted role: Afaan. Start with the prepared ciphertext.");
+  status(
+    "Show the ghost-font concept first, then continue with ordinary readable text for the pitch.",
+  );
   render();
   window.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -130,7 +133,12 @@ function next() {
   if (!state.started) return start();
   if (state.complete) return reset();
   remember();
-  if (state.delivered <= state.turn || state.view === "compose") {
+  if (state.intro) {
+    state.intro = false;
+    status(
+      "For visibility, this scripted conversation uses normal text. Start with the prepared ciphertext.",
+    );
+  } else if (state.delivered <= state.turn || state.view === "compose") {
     state.view = "compose";
     if (!state.ciphertext) return fill();
     if (!send()) {
@@ -174,6 +182,7 @@ function reset() {
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 function nextLabel() {
+  if (state.intro) return "Continue with readable text";
   if (state.complete) return "Replay from start";
   if (state.delivered <= state.turn || state.view === "compose")
     return state.ciphertext ? "Transmit poorly" : "Load prepared ciphertext";
@@ -184,13 +193,17 @@ function nextLabel() {
   return state.turn < pitchTurns.length - 1 ? "Next message" : "Finish replay";
 }
 function render() {
+  $("ghost-font-preview")?.pause();
   document.body.classList.toggle("presenting", state.started);
   const turn = pitchTurns[state.turn];
   $("presenter-bar").hidden = !state.started;
-  $("perspectives").hidden = !state.started || state.complete;
-  $("cue-scene").textContent =
-    `SCENE ${state.turn + 1} / ${pitchTurns.length} · ${turn.theme}`;
-  $("cue-direction").textContent = `${turn.sender} → ${turn.recipient}`;
+  $("perspectives").hidden = !state.started || state.complete || state.intro;
+  $("cue-scene").textContent = state.intro
+    ? "BEFORE THE STORY / VISUAL CONCEPT"
+    : `SCENE ${state.turn + 1} / ${pitchTurns.length} · ${turn.theme}`;
+  $("cue-direction").textContent = state.intro
+    ? "Ghost font → readable pitch demo"
+    : `${turn.sender} → ${turn.recipient}`;
   $("previous-cue").disabled = history.length === 0;
   $("next-cue").innerHTML = `${nextLabel()} ${arrow}`;
   for (const button of $("perspectives").querySelectorAll("button"))
@@ -208,6 +221,27 @@ function render() {
     $("demo-stage").innerHTML =
       `<div class="demo-login"><span class="eyebrow">DEMO SIGN-IN / PREPARED ROLE</span><h2>Enter as Afaan<span>.</span></h2><p>Afaan, Ojass, and the Observer are all available in this one-window replay. Switch perspectives as the story unfolds.</p><label for="demo-name">DEMO USERNAME</label><input id="demo-name" value="Afaan" readonly><button id="start-demo" class="primary" type="button">Start scripted demo ${arrow}</button><small>This is a presenter role, not a live Supabase sign-in.</small></div>`;
     $("start-demo").addEventListener("click", start);
+    return;
+  }
+  if (state.intro) {
+    $("demo-stage").innerHTML =
+      `<div class="stage-heading"><span class="eyebrow">PROPOSED VISUAL TREATMENT</span><h2>Encrypted text, in motion<span>.</span></h2><p>This clip shows the intended ghost-font experience. For this pitch, we'll use normal text so everyone can follow the conversation.</p></div><figure class="ghost-preview"><video id="ghost-font-preview" aria-label="Ghost-font concept preview" aria-describedby="ghost-preview-caption" controls muted loop playsinline preload="metadata"><source src="/pitch-media/ghost-font.webm" type="video/webm">Your browser cannot play this clip. <a href="/pitch-media/ghost-font.webm">Open the video file</a>.</video><figcaption id="ghost-preview-caption">Watch the moving dots reveal text. This is a concept video; the conversation that follows uses ordinary text.</figcaption></figure>`;
+    const video = $("ghost-font-preview");
+    video.muted = true;
+    video.addEventListener("error", () => {
+      if ($("ghost-font-preview") === video)
+        status(
+          "The concept video could not load. You can continue with the readable demo.",
+          true,
+        );
+    });
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches)
+      video.play().catch(() => {
+        if ($("ghost-font-preview") === video)
+          status(
+            "Press Play on the clip, then continue with readable text whenever you're ready.",
+          );
+      });
     return;
   }
   if (state.complete) {
@@ -286,7 +320,7 @@ document.addEventListener("keydown", (event) => {
     event.ctrlKey ||
     event.metaKey ||
     event.shiftKey ||
-    /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) ||
+    /INPUT|TEXTAREA|SELECT|VIDEO/.test(event.target.tagName) ||
     event.target.isContentEditable
   )
     return;

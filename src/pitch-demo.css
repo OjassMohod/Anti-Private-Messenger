@@ -578,6 +578,28 @@ footer {
   color: #a6b297;
   padding: 28px 0;
 }
+.ghost-preview {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dce5d3;
+  border-radius: 8px;
+  background: #111;
+}
+.ghost-preview video {
+  display: block;
+  width: 100%;
+  max-height: min(48vh, 440px);
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #111;
+}
+.ghost-preview figcaption {
+  padding: 12px 16px;
+  font-size: 11px;
+  color: #8c9b7b;
+  background: #f5f8ef;
+  line-height: 1.7;
+}
 .pitch-badges > button {
   font-size: 10px;
   padding: 7px 10px;
