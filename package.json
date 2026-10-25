@@ -7,11 +7,11 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "node scripts/dev.mjs",
+    "dev": "node --use-env-proxy scripts/dev.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test test/*.test.js",
-    "test:security": "node --env-file-if-exists=.env.local scripts/test-security.mjs",
+    "test:security": "node --use-env-proxy --env-file-if-exists=.env.local scripts/test-security.mjs",
     "test:database": "node scripts/test-database.mjs",
     "test:e2e": "playwright test"
   },

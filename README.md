@@ -21,7 +21,7 @@ npm run dev
 
 This starts Vite **and the actual Vercel API handlers** on port 5173. Restart after changing server environment variables or API/server code. The UI provides setup instructions when public configuration is missing. `npm run preview` serves a static production build only; it cannot send messages through server functions.
 
-In a cloud environment with a restricted home directory, use `npm ci --cache /workspace/.npm-cache`.
+In a cloud environment with a restricted home directory, use `npm ci --cache /workspace/.npm-cache`. The development and live-security commands enable Node's environment-proxy support so Supabase requests follow the cloud's configured network route; TLS verification stays enabled.
 
 ## 1. Supabase setup — dashboard actions
 

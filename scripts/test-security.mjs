@@ -50,7 +50,9 @@ async function api(path, user, body, authenticated = true) {
 }
 async function subscribe(user, table, events) {
   const channel = user.client
-    .channel(`security-${run}-${user.id}-${table}`)
+    .channel(`security-${run}-${user.id}-${table}`, {
+      config: { postgres_changes_options: { wait: true } },
+    })
     .on(
       "postgres_changes",
       { schema: "public", table, event: "INSERT" },
@@ -60,7 +62,7 @@ async function subscribe(user, table, events) {
   await new Promise((resolve, reject) => {
     const timer = globalThis.setTimeout(
       () => reject(new Error(`Realtime ${table} subscription timed out`)),
-      15000,
+      35000,
     );
     channel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
@@ -255,8 +257,8 @@ try {
   console.error(`FAIL during ${stage}: ${error.message}`);
   process.exitCode = 1;
 } finally {
-  for (const { client, channel } of channels)
-    await client.removeChannel(channel);
+  await Promise.all(channels.map(({ channel }) => channel.unsubscribe(2000)));
+  for (const user of users) await user.client.realtime.disconnect();
   for (const user of users) {
     const result = await admin.auth.admin.deleteUser(user.id);
     if (result.error) {

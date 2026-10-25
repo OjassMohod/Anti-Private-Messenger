@@ -219,7 +219,9 @@ async function startSession(session) {
   $("logout").hidden = false;
   if (state.channel) await client.removeChannel(state.channel);
   state.channel = client
-    .channel(`workspace-${session.user.id}`)
+    .channel(`workspace-${session.user.id}`, {
+      config: { postgres_changes_options: { wait: true } },
+    })
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "broadcasts" },
