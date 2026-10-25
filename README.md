@@ -72,6 +72,8 @@ Signing out abandons an anonymous identity; there is no password recovery. Reloa
 
 The server makes one short request with a 3.5-second timeout. Missing configuration, provider errors, rate limits, malformed/empty responses, an unchanged message, or excessive output use the deterministic fallback. Keys never enter the frontend bundle. The UI explicitly identifies fallback delivery.
 
+The prompt asks Groq to distort the actual message's intention while retaining a recognizable topic, detail, or social gesture. It discourages unrelated surreal scenes. Responses are generated independently, so unique wording is not guaranteed; basic validation does not prove semantic relevance.
+
 `openai/gpt-oss-120b` and `openai/gpt-oss-20b` use low reasoning effort and a larger completion budget so the model can finish its final answer. Reasoning text is excluded from the response and never delivered to users. Other models use the short completion budget.
 
 For troubleshooting, authenticated send responses and Vercel function logs include a safe fallback category (`missing_configuration`, `provider_http_error`, `timeout`, `invalid_output`, `invalid_response`, or `request_failed`). HTTP failures include a status and, when recognized, a fixed provider error code. Missing configuration reports only whether each variable is present. Keys, message text, and raw provider error messages are never included in these diagnostics.
